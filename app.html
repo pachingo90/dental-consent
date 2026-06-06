@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="同意書簽署">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="icon" type="image/png" href="/icon.png">
+<title>同意書簽署系統</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/dist/tabler-icons.min.css">
+<style>
+:root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-m:#378ADD;--blue-d:#0C447C;--green:#3B6D11;--green-l:#EAF3DE;--green-m:#97C459;--red-l:#FCEBEB;--red:#A32D2D;--g50:#F8F9FA;--g100:#F1F3F5;--g400:#868E96;--g600:#495057;--g800:#212529;--brd:rgba(0,0,0,0.09);--brd-s:rgba(0,0,0,0.15);--r:8px;--r-lg:12px;--tap:44px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+.app{display:flex;flex-direction:column;height:100vh;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--g800);background:var(--g100);}
+.nav{background:#fff;border-bottom:1px solid var(--brd);display:flex;align-items:center;flex-shrink:0;height:48px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.nav-tabs{display:flex;align-items:center;flex:1;overflow-x:auto;padding:0 8px;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nt{height:48px;padding:0 14px;font-size:14px;color:var(--g400);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.nt.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.nav-r{display:flex;align-items:center;gap:4px;padding:0 10px;border-left:1px solid var(--brd);flex-shrink:0;height:100%;}
+.lang-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+.lang-label{font-size:11px;font-weight:500;color:var(--g400);transition:color .2s;}
+.lang-label.active{color:var(--blue);font-weight:600;}
+.toggle-track{width:36px;height:20px;background:#ccc;border-radius:99px;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-track.on{background:var(--blue);}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle-track.on .toggle-thumb{transform:translateX(16px);}
+.vd{width:1px;height:20px;background:var(--brd);margin:0 2px;}
+.ibt{width:32px;height:32px;border:none;cursor:pointer;border-radius:var(--r);background:transparent;color:var(--g400);display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;}
+.ibt:hover{background:var(--green-l);color:var(--green);}
+.ibt.on{background:var(--green-l);color:var(--green);}
+.ibt.rec:hover,.ibt.rec.on{background:var(--blue-l);color:var(--blue);}
+.ibt.logout:hover{background:var(--red-l);color:var(--red);}
+.view{display:none;flex:1;overflow-y:auto;}
+.view.on{display:block;}
+.form-view{padding:16px 16px 40px;max-width:760px;margin:0 auto;}
+.a4{background:#fff;border:1px solid var(--brd);border-radius:var(--r-lg);padding:24px 28px;max-width:700px;margin:0 auto;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.dochd{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:14px;border-bottom:1.5px solid var(--blue-d);margin-bottom:16px;}
+.doctitle{font-size:16px;font-weight:600;color:var(--blue-d);}
+.docsub{font-size:11px;color:var(--g400);margin-top:2px;}
+.doclogo{font-size:12px;font-weight:600;color:var(--blue-d);text-align:right;line-height:1.6;}
+.doclogo-en{font-size:10px;font-weight:400;color:var(--g400);}
+.sec{font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 7px;display:flex;align-items:center;gap:4px;}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:9px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:11px;font-weight:600;color:var(--g400);}
+.fg input,.fg select{font-size:14px;padding:8px 10px;min-height:var(--tap);border:1px solid var(--brd-s);border-radius:var(--r);background:var(--g50);color:var(--g800);font-family:inherit;width:100%;}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--blue-m);background:#fff;}
+.cbl{font-size:12px;color:var(--g600);line-height:1.8;background:#F0F7FF;padding:10px 12px;border-left:2px solid var(--blue-m);margin-bottom:10px;}
+.cbl p{margin-bottom:5px;}.cbl p:last-child{margin-bottom:0;}
+.rg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;}
+.ri{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--g600);line-height:1.45;padding:7px 9px;background:var(--g50);border-radius:var(--r);}
+.rd{width:5px;height:5px;border-radius:50%;background:var(--blue-m);margin-top:4px;flex-shrink:0;}
+.cks{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.ci{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--g800);line-height:1.55;padding:9px 11px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;}
+.ci input[type=checkbox]{width:16px;height:16px;margin-top:1px;flex-shrink:0;accent-color:var(--blue);}
+.sig-row{display:grid;grid-template-columns:3fr 1fr;gap:12px;margin-top:12px;}
+.sig-col{display:flex;flex-direction:column;gap:5px;}
+.sig-r{display:flex;flex-direction:column;gap:7px;}
+.slabel{font-size:11px;font-weight:600;color:var(--g400);margin-bottom:2px;}
+.sigpad{position:relative;border:1px solid var(--brd-s);border-radius:var(--r);overflow:hidden;background:#fff;touch-action:none;}
+.sigpad canvas{display:block;width:100%;height:76px;cursor:crosshair;touch-action:none;}
+.sigpad.signed{border-color:var(--blue-m);}
+.sphint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--g400);pointer-events:none;transition:opacity .2s;}
+.sphint.h{opacity:0;}
+.sp-actions{display:flex;justify-content:flex-end;margin-top:4px;}
+.bclr{height:26px;padding:0 10px;font-size:11px;cursor:pointer;border:1px solid var(--brd-s);border-radius:99px;background:var(--g50);color:var(--g400);font-family:inherit;display:flex;align-items:center;gap:3px;}
+.hdiv{border:none;border-top:1px solid var(--brd);margin:12px 0;}
+.form-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--brd);}
+.footer-txt{font-size:10px;color:var(--g400);line-height:1.6;flex:1;}
+.save-btn{width:40px;height:40px;border:none;cursor:pointer;border-radius:var(--r);background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;margin-left:14px;transition:all .15s;}
+.save-btn:hover{background:var(--blue);color:#fff;}
+.save-btn:active{transform:scale(.94);}
+.settings-view{padding:20px 16px 40px;max-width:660px;margin:0 auto;}
+.settings-view h2{font-size:17px;font-weight:600;color:var(--g800);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.settings-view>p{font-size:13px;color:var(--g400);margin-bottom:16px;}
+.card{background:#fff;border:1px solid var(--brd);border-radius:var(--r-lg);padding:15px 17px;margin-bottom:12px;}
+.card-t{font-size:12px;font-weight:600;color:var(--g400);margin-bottom:12px;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.04em;}
+.add-row{display:flex;gap:9px;align-items:flex-end;}
+.add-row .fg{flex:1;}
+.btng{height:var(--tap);padding:0 14px;font-size:13px;cursor:pointer;border:none;border-radius:var(--r);background:var(--green);color:#fff;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.dlist{background:#fff;border:1px solid var(--brd);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;}
+.dlist-hd{padding:10px 15px;background:var(--g50);border-bottom:1px solid var(--brd);font-size:11px;font-weight:600;color:var(--g400);display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.04em;}
+.drow{display:flex;align-items:center;padding:10px 15px;border-bottom:1px solid var(--brd);gap:10px;}
+.drow:last-child{border-bottom:none;}
+.dav{width:34px;height:34px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.dinfo{flex:1;}.dname{font-size:14px;font-weight:600;color:var(--g800);}.dtit{font-size:12px;color:var(--g400);margin-top:1px;}
+.dempty{padding:24px;text-align:center;font-size:13px;color:var(--g400);}
+.btnd{height:32px;padding:0 11px;font-size:12px;cursor:pointer;border:1px solid var(--brd-s);border-radius:var(--r);background:none;color:var(--red);font-family:inherit;display:flex;align-items:center;gap:4px;}
+.nbox{background:#FFFBEB;border:1px solid #FAC775;border-radius:var(--r);padding:10px 13px;font-size:12px;color:#633806;line-height:1.65;}
+.clinic-preview{background:var(--blue-l);border:1px solid var(--blue-m);border-radius:var(--r);padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.clinic-preview-label{font-size:10px;color:var(--blue);font-weight:500;margin-bottom:3px;}
+.clinic-preview-name{font-size:13px;font-weight:600;color:var(--blue-d);}
+.clinic-preview-en{font-size:11px;color:var(--blue);margin-top:2px;}
+.btns-row{display:flex;justify-content:flex-end;margin-top:12px;}
+.btn-apply{height:36px;padding:0 18px;font-size:13px;cursor:pointer;border:none;border-radius:var(--r);background:var(--blue);color:#fff;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.records-view{padding:20px 16px 40px;max-width:660px;margin:0 auto;}
+.records-view h2{font-size:17px;font-weight:600;color:var(--g800);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.rec-wrap{background:#fff;border:1px solid var(--brd);border-radius:var(--r-lg);overflow:hidden;}
+.rec-hd{padding:12px 16px;background:var(--g50);border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;}
+.rec-hd-t{font-size:13px;font-weight:600;color:var(--g800);}
+.rec-cnt{font-size:12px;color:var(--g400);}
+.rec-search{padding:10px 14px;border-bottom:1px solid var(--brd);background:#fff;}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--g50);border:1px solid var(--brd-s);border-radius:99px;padding:0 14px;height:38px;transition:border-color .15s;}
+.search-box:focus-within{border-color:var(--blue-m);background:#fff;}
+.search-box i{font-size:16px;color:var(--g400);flex-shrink:0;}
+.search-box input{border:none;outline:none;background:transparent;font-size:13px;color:var(--g800);font-family:inherit;flex:1;min-width:0;}
+.search-box input::placeholder{color:var(--g400);}
+.search-clear{border:none;background:none;cursor:pointer;color:var(--g400);font-size:16px;padding:0;display:none;line-height:1;}
+.search-clear.show{display:block;}
+.search-result-hint{font-size:12px;color:var(--g400);padding:6px 14px 0;}
+.rec-empty{padding:48px 20px;text-align:center;}
+.rec-empty i{font-size:36px;color:var(--g400);display:block;margin-bottom:10px;}
+.rec-empty p{font-size:13px;color:var(--g400);}
+.dgrp{border-bottom:1px solid var(--brd);}
+.dgrp:last-child{border-bottom:none;}
+.dgrp-row{display:grid;grid-template-columns:100px 1fr;align-items:stretch;}
+.dcell{padding:12px 15px;border-right:1px solid var(--brd);display:flex;flex-direction:column;padding-top:14px;}
+.dlabel{font-size:13px;font-weight:600;color:var(--blue-d);}
+.ddow{font-size:11px;color:var(--g400);margin-top:2px;}
+.rcell{padding:8px 12px;}
+.ritem{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:var(--r);margin-bottom:2px;cursor:pointer;transition:background .15s;}
+.ritem:hover{background:var(--blue-l);}
+.rname{font-size:13px;font-weight:600;color:var(--g800);flex:1;}
+.rbadge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap;}
+.b-crown{background:#EDE9FE;color:#5B21B6;}
+.b-auth{background:var(--blue-l);color:var(--blue-d);}
+.rtime{font-size:11px;color:var(--g400);flex-shrink:0;}
+.rchevron{font-size:14px;color:var(--g400);flex-shrink:0;}
+.detail-view{padding:0;max-width:760px;margin:0 auto;}
+.detail-topbar{display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:10;}
+.btn-back{width:34px;height:34px;border:none;cursor:pointer;border-radius:var(--r);background:var(--g50);color:var(--g800);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.detail-topbar-title{font-size:15px;font-weight:600;color:var(--g800);}
+.detail-body{padding:16px 16px 40px;}
+.detail-card{background:#fff;border:1px solid var(--brd);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:12px;}
+.detail-card-t{font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:5px;}
+.detail-row{display:flex;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--brd);}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{font-size:12px;color:var(--g400);width:90px;flex-shrink:0;padding-top:1px;}
+.detail-value{font-size:13px;font-weight:500;color:var(--g800);flex:1;}
+.tooth-chip-sm{display:inline-flex;align-items:center;background:#fff;color:#111;border:1px solid #bbb;border-radius:99px;padding:2px 8px;font-size:12px;margin:2px 3px 2px 0;}
+.check-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--g600);padding:5px 0;line-height:1.5;}
+.check-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.check-icon.ok{color:var(--green);}
+.sig-img-wrap{border:1px solid var(--brd-s);border-radius:var(--r);overflow:hidden;background:var(--g50);margin-top:4px;}
+.sig-img-wrap img{display:block;width:100%;max-height:120px;object-fit:contain;}
+.sig-empty{padding:20px;text-align:center;font-size:12px;color:var(--g400);}
+.tentry{background:var(--g50);border:1px solid var(--brd);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;}
+.tentry-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.tlabel{font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-l);padding:2px 9px;border-radius:99px;}
+.trmbtn{height:28px;padding:0 10px;font-size:11px;cursor:pointer;border:1px solid var(--brd-s);border-radius:var(--r);background:#fff;color:var(--red);font-family:inherit;display:flex;align-items:center;gap:4px;}
+.bb{height:var(--tap);padding:0 15px;font-size:13px;cursor:pointer;border:1.5px solid var(--blue-m);border-radius:var(--r);background:var(--blue-l);color:var(--blue);font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.si{border:1px solid var(--brd-s);border-radius:var(--r);padding:10px 12px;display:flex;align-items:flex-start;gap:9px;cursor:pointer;}
+.si input[type=checkbox]{width:15px;height:15px;margin-top:2px;flex-shrink:0;accent-color:var(--blue);}
+.sl{font-size:12px;font-weight:600;color:var(--g800);margin-bottom:3px;}
+.sd2{font-size:11px;color:var(--g400);line-height:1.4;}
+.br{font-size:10px;padding:2px 7px;border-radius:99px;background:var(--red-l);color:var(--red);font-weight:600;}
+.tbox{min-height:var(--tap);border:1px solid var(--brd-s);border-radius:var(--r);background:var(--g50);display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding:5px 8px;cursor:text;}
+.tbox:focus-within{border-color:var(--blue-m);background:#fff;}
+.tchip{display:inline-flex;align-items:center;gap:3px;background:#fff;color:#111;border:1px solid #bbb;border-radius:99px;padding:3px 9px 3px 8px;font-size:14px;white-space:nowrap;}
+.tchip-rm{background:none;border:none;cursor:pointer;color:#777;font-size:14px;line-height:1;padding:0;opacity:.6;}
+.tchip-rm:hover{color:#111;opacity:1;}
+.traw{border:none;outline:none;background:transparent;font-size:14px;color:var(--g800);font-family:inherit;min-width:44px;flex:1;padding:2px 0;}
+.nbox2{background:#FFFBEB;border:1px solid #FAC775;border-radius:var(--r);padding:9px 13px;font-size:12px;color:#633806;line-height:1.6;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;display:none;align-items:center;gap:7px;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
+.toast.show{display:flex;}
+.toast.ok{background:#1a3a0a;color:#EAF3DE;}
+.toast.err{background:#7a1a1a;color:#FCEBEB;}
+@media(max-width:640px){.r3{grid-template-columns:1fr 1fr;}.rg{grid-template-columns:1fr 1fr;}.sg{grid-template-columns:1fr;}.sig-row{grid-template-columns:1fr;}}
+@media(max-width:400px){.r3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="nav">
+  <div class="nav-tabs">
+    <button class="nt on" onclick="goView('f0')"><i class="ti ti-tools"></i><span id="t-t0">拆除牙釘／牙冠同意書</span></button>
+    <button class="nt" onclick="goView('f1')"><i class="ti ti-lock-open"></i><span id="t-t1">醫療資訊查詢授權同意書</span></button>
+  </div>
+  <div class="nav-r">
+    <label class="lang-toggle" onclick="toggleLang()">
+      <span class="lang-label active" id="lbl-zh">中</span>
+      <div class="toggle-track" id="langTrack"><div class="toggle-thumb"></div></div>
+      <span class="lang-label" id="lbl-en">英</span>
+    </label>
+    <div class="vd"></div>
+    <button class="ibt" id="abn" onclick="goView('settings')" title="後台管理"><i class="ti ti-settings"></i></button>
+    <button class="ibt rec" id="rbn" onclick="goView('records')" title="簽署記錄"><i class="ti ti-device-floppy"></i></button>
+    <button class="ibt logout" onclick="doLogout()" title="登出"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+
+<!-- PAGE 0 -->
+<div class="view on" id="view-f0">
+<div class="form-view"><div class="a4">
+  <div class="dochd">
+    <div><div class="doctitle" id="t-p0T">拆除牙釘／牙冠手術同意書</div><div class="docsub" id="t-p0S">Consent for Removal of Dental Post / Crown</div></div>
+    <div class="doclogo"><div id="logo-zh0"></div><div class="doclogo-en" id="logo-en0"></div></div>
+  </div>
+  <div class="sec"><i class="ti ti-stethoscope"></i><span id="t-proc">治療說明</span></div>
+  <div class="cbl"><p id="t-pd1">本手術目的為拆除患者牙齒內現有之牙釘（Post）及／或牙冠（Crown），以進行後續牙科治療（包括但不限於重新根管治療、補綴修復、植牙準備等）。</p><p id="t-pd2">主治醫師將依患者個別狀況，選用適當器械（超音波震盪器、專用鑽針等）執行拆除程序。</p></div>
+  <div class="r3">
+    <div class="fg"><label id="t-patName">患者姓名 *</label><input type="text" id="p0name" placeholder="姓名"></div>
+    <div class="fg"><label id="t-aDoc">主治醫師 *</label><select id="ds0"></select></div>
+    <div class="fg">
+      <label id="t-tooth">治療牙位 <span style="font-weight:400;color:var(--blue);font-size:9px;" id="t-th">FDI，Enter 加入</span></label>
+      <div class="tbox" id="tbox" onclick="document.getElementById('traw').focus()"><input class="traw" id="traw" type="text" placeholder="16..." autocomplete="off" inputmode="numeric"></div>
+    </div>
+  </div>
+  <div class="sec"><i class="ti ti-alert-triangle"></i><span id="t-rT">治療風險告知</span></div>
+  <p style="font-size:11px;color:var(--g400);margin-bottom:7px" id="t-rI">以下為本手術可能發生之風險，患者已充分瞭解：</p>
+  <div class="rg">
+    <div class="ri"><div class="rd"></div><span id="t-r1">牙裂或折斷，導致須拔除患牙</span></div>
+    <div class="ri"><div class="rd"></div><span id="t-r2">牙釘殘留無法完全取出</span></div>
+    <div class="ri"><div class="rd"></div><span id="t-r3">鄰近牙齒或牙周組織損傷</span></div>
+    <div class="ri"><div class="rd"></div><span id="t-r4">術後疼痛、腫脹及短暫敏感</span></div>
+    <div class="ri"><div class="rd"></div><span id="t-r5">麻醉藥物過敏反應</span></div>
+    <div class="ri"><div class="rd"></div><span id="t-r6">治療後需重新評估後續修復計畫</span></div>
+  </div>
+  <div class="sec"><i class="ti ti-checkbox"></i><span id="t-pC">患者確認事項 *</span></div>
+  <div class="cks">
+    <label class="ci"><input type="checkbox" class="ck0"><span id="t-c1">我已詳閱並理解上述治療說明及風險告知，並有機會向醫師提問。</span></label>
+    <label class="ci"><input type="checkbox" class="ck0"><span id="t-c2">我理解本手術之替代方案（包括不治療），並同意接受本次拆除牙釘／牙冠之治療。</span></label>
+    <label class="ci"><input type="checkbox" class="ck0"><span id="t-c3">我同意醫師依實際術中情形彈性調整治療方式，以符合我的最佳利益。</span></label>
+    <label class="ci"><input type="checkbox" class="ck0"><span id="t-c4">我已被告知術後注意事項，並承諾遵守醫囑。</span></label>
+  </div>
+  <div class="hdiv"></div>
+  <div class="sig-row">
+    <div class="sig-col">
+      <div class="slabel" id="t-pSig">患者（或法定代理人）簽名 *</div>
+      <div class="sigpad" id="sw0"><canvas id="cv0"></canvas><div class="sphint"><i class="ti ti-pencil" style="font-size:13px;margin-right:4px;"></i><span id="t-sh0">在此簽名</span></div></div>
+      <div class="sp-actions"><button class="bclr" onclick="clrPad(0)"><i class="ti ti-refresh" style="font-size:11px;"></i><span id="t-cl0">清除重簽</span></button></div>
+    </div>
+    <div class="sig-r">
+      <div class="fg"><label id="t-sd0">簽署日期</label><input type="date" id="sd0" style="font-size:13px;padding:8px 10px;min-height:var(--tap);border:1px solid var(--brd-s);border-radius:var(--r);background:var(--g50);color:var(--g800);width:100%;"></div>
+      <div class="fg"><label id="t-rel0">與患者之關係</label><select id="rs0" style="font-size:13px;padding:8px 10px;min-height:var(--tap);border:1px solid var(--brd-s);border-radius:var(--r);background:var(--g50);color:var(--g800);width:100%;"><option value="self" id="t-ro0a">本人</option><option value="family" id="t-ro0b">家屬</option></select></div>
+    </div>
+  </div>
+  <div class="form-footer">
+    <span class="footer-txt" id="t-footer0">本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。</span>
+    <button class="save-btn" onclick="submitForm(0)"><i class="ti ti-device-floppy"></i></button>
+  </div>
+</div></div>
+</div>
+
+<!-- PAGE 1 -->
+<div class="view" id="view-f1">
+<div class="form-view">
+<div style="margin-bottom:16px;"><h1 style="font-size:17px;font-weight:600;color:var(--g800);margin-bottom:4px" id="t-p1T">患者個人資料與醫療資訊查詢授權同意書</h1><p style="font-size:12px;color:var(--g400);line-height:1.6" id="t-p1S">依據《醫療法》第 72 條及《個人資料保護法》｜請詳閱後簽署，正本自簽署日起永久保存。</p></div>
+<div class="card"><div class="card-t"><i class="ti ti-info-circle"></i><span id="t-fD">同意書說明</span></div><div class="cbl"><p id="t-fDT">本診所對於患者之就醫紀錄、病情診斷、治療計畫及自費項目明細等隱私資料，負有嚴格保密義務。為便利患者因故需由家屬或特定第三人代為處理就醫相關事宜，特簽署本同意書。</p></div></div>
+<div class="card"><div class="card-t"><i class="ti ti-user"></i><span id="t-aI">一、授權人（患者本人）基本資料</span></div><div class="r3"><div class="fg"><label id="t-pN">患者姓名 *</label><input type="text" id="p1name" placeholder="姓名"></div><div class="fg"><label id="t-id">身分證字號</label><input type="text" placeholder="A123456789"></div><div class="fg"><label id="t-ph">聯絡電話</label><input type="tel" placeholder="手機或市話"></div></div></div>
+<div class="card"><div class="card-t"><i class="ti ti-users"></i><span id="t-tI">二、受託人（被授權之親友）資料</span></div><div id="tlist"></div><button class="bb" onclick="addT()" style="margin-top:4px"><i class="ti ti-user-plus"></i><span id="t-aT2">新增受託人</span></button></div>
+<div class="card"><div class="card-t"><i class="ti ti-list-check"></i><span id="t-aS">三、授權範圍</span>&nbsp;<span class="br" id="t-rM">必填，可複選</span></div><div class="sg"><label class="si"><input type="checkbox" class="ck1"><div><div class="sl" id="t-s1">完整醫療資訊</div><div class="sd2" id="t-s1d">病情診斷、療程進度、術後照護及影像等</div></div></label><label class="si"><input type="checkbox" class="ck1"><div><div class="sl" id="t-s2">醫療費用資訊</div><div class="sd2" id="t-s2d">報價、繳費狀況、收據及費用明細</div></div></label><label class="si"><input type="checkbox" class="ck1"><div><div class="sl" id="t-s3">代領醫療文件</div><div class="sd2" id="t-s3d">診斷證明書、病歷複製本、處方箋等</div></div></label><label class="si"><input type="checkbox" class="ck1"><div><div class="sl" id="t-s4">僅限約診聯絡</div><div class="sd2" id="t-s4d">確認、更改、取消或預約看診時間</div></div></label></div></div>
+<div class="card"><div class="card-t"><i class="ti ti-shield-lock"></i><span id="t-dcl">四、同意及聲明事項</span></div>
+  <div class="cks">
+    <label class="ci"><input type="checkbox" class="ck1"><span><strong style="font-weight:600" id="t-d1t">身分核對義務：</strong><span id="t-d1">受託人查詢時，診所得要求出示國民身分證以供核對。</span></span></label>
+    <label class="ci"><input type="checkbox" class="ck1"><span><strong style="font-weight:600" id="t-d2t">變更與撤回權利：</strong><span id="t-d2">本同意書自簽署日起生效。若欲變更或撤回，應主動通知本診所。</span></span></label>
+    <label class="ci"><input type="checkbox" class="ck1"><span id="t-d3">我已詳閱並完全理解本同意書之全部內容，自願授權本診所提供醫療資訊予受託人。</span></label>
+  </div>
+  <div class="hdiv"></div>
+  <div class="sig-row">
+    <div class="sig-col">
+      <div class="slabel" id="t-aSig">立同意書人（患者本人）親筆簽名 *</div>
+      <div class="sigpad" id="sw1"><canvas id="cv1"></canvas><div class="sphint"><i class="ti ti-pencil" style="font-size:13px;margin-right:4px;"></i><span id="t-sh1">在此簽名</span></div></div>
+      <div class="sp-actions"><button class="bclr" onclick="clrPad(1)"><i class="ti ti-refresh" style="font-size:11px;"></i><span id="t-cl1">清除重簽</span></button></div>
+    </div>
+    <div class="sig-r">
+      <div class="fg"><label id="t-sd1">簽署日期</label><input type="date" id="sd1" style="font-size:13px;padding:8px 10px;min-height:var(--tap);border:1px solid var(--brd-s);border-radius:var(--r);background:var(--g50);color:var(--g800);width:100%;"></div>
+      <div class="fg"><label id="t-rel1">與患者之關係</label><select id="rs1" style="font-size:13px;padding:8px 10px;min-height:var(--tap);border:1px solid var(--brd-s);border-radius:var(--r);background:var(--g50);color:var(--g800);width:100%;"><option value="self" id="t-ro1a">本人</option><option value="family" id="t-ro1b">家屬</option></select></div>
+    </div>
+  </div>
+  <div class="nbox2" style="margin-top:11px"><strong id="t-n1">注意事項：</strong><span id="t-pN2">本同意書由醫療機構留存於病歷中，正本自簽署日起永久保存。</span></div>
+  <div class="form-footer" style="margin-top:14px;">
+    <span class="footer-txt" id="t-footer1">本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。</span>
+    <button class="save-btn" onclick="submitForm(1)"><i class="ti ti-device-floppy"></i></button>
+  </div>
+</div></div>
+</div>
+
+<!-- 設定頁 -->
+<div class="view" id="view-settings">
+<div class="settings-view">
+  <h2><i class="ti ti-settings" style="color:var(--green);"></i><span id="t-aT">後台管理</span></h2>
+  <p id="t-aD">管理診所資訊與醫師名單。</p>
+  <div class="card">
+    <div class="card-t"><i class="ti ti-building-hospital"></i><span id="t-clinicT">診所名稱設定</span></div>
+    <div class="fg" style="margin-bottom:10px;"><label id="t-clinicZhL">診所中文名稱</label><input type="text" id="clinicZh" oninput="previewClinic()"></div>
+    <div class="fg" style="margin-bottom:10px;"><label id="t-clinicEnL">診所英文名稱</label><input type="text" id="clinicEn" oninput="previewClinic()"></div>
+    <div class="clinic-preview">
+      <div><div class="clinic-preview-label" id="t-clinicPrev">同意書右上角預覽</div><div class="clinic-preview-name" id="prev-zh"></div><div class="clinic-preview-en" id="prev-en"></div></div>
+      <i class="ti ti-eye" style="font-size:18px;color:var(--blue);opacity:.5;"></i>
+    </div>
+    <div class="btns-row"><button class="btn-apply" onclick="saveClinic()"><i class="ti ti-check"></i><span id="t-clinicSave">套用名稱</span></button></div>
+  </div>
+  <div class="card">
+    <div class="card-t"><i class="ti ti-user-plus"></i><span id="t-aAdd">新增醫師</span></div>
+    <div class="add-row">
+      <div class="fg"><label id="t-dN">醫師姓名</label><input type="text" id="ndn" placeholder="例：王小明"></div>
+      <div class="fg"><label id="t-dR">職稱</label><input type="text" id="ndt" placeholder="例：主治醫師"></div>
+      <button class="btng" onclick="addDoc()"><i class="ti ti-plus"></i><span id="t-add">新增</span></button>
+    </div>
+  </div>
+  <div class="dlist">
+    <div class="dlist-hd"><i class="ti ti-list"></i><span id="t-dL">醫師名單</span>&nbsp;<span id="dcnt" style="font-weight:400;"></span></div>
+    <div id="dlb"></div>
+  </div>
+  <div class="nbox"><strong id="t-n">注意：</strong><span id="t-aN">刪除醫師後，該醫師將從所有同意書的選單中移除，但已填寫完成的同意書不受影響。</span></div>
+</div>
+</div>
+
+<!-- 記錄頁 -->
+<div class="view" id="view-records">
+<div class="records-view">
+  <h2><i class="ti ti-device-floppy" style="color:var(--blue);"></i><span id="t-recT">簽署記錄</span></h2>
+  <div class="rec-wrap">
+    <div class="rec-hd"><span class="rec-hd-t" id="t-recHd">所有記錄</span><span class="rec-cnt" id="recCnt">共 0 筆</span></div>
+    <div class="rec-search">
+      <div class="search-box">
+        <i class="ti ti-search"></i>
+        <input type="text" id="searchInput" placeholder="輸入姓名搜尋…" oninput="onSearch()" autocomplete="off">
+        <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="search-result-hint" id="searchHint"></div>
+    </div>
+    <div id="recBody"></div>
+  </div>
+</div>
+</div>
+
+<!-- 詳情頁 -->
+<div class="view" id="view-detail">
+<div class="detail-view">
+  <div class="detail-topbar">
+    <button class="btn-back" onclick="goView('records')"><i class="ti ti-arrow-left"></i></button>
+    <span class="detail-topbar-title" id="detail-title">簽署詳情</span>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+</div>
+
+</div>
+<div class="toast" id="toast"><span id="tmsg"></span></div>
+
+<script>
+// ── Session ───────────────────────────────────────────────
+var sess = null;
+try { sess = JSON.parse(localStorage.getItem('dental_session')); } catch(e) {}
+if (!sess || !sess.token) window.location.href = '/';
+
+var SESSION_TOKEN = sess.token;
+var clinic = sess.clinic; // { id, name_zh, name_en }
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SESSION_TOKEN };
+}
+function doLogout() {
+  localStorage.removeItem('dental_session');
+  window.location.href = '/';
+}
+
+// ── FDI ───────────────────────────────────────────────────
+var FDI={'11':'上顎右側中門牙','12':'上顎右側側門牙','13':'上顎右側犬齒','14':'上顎右側第一小臼齒','15':'上顎右側第二小臼齒','16':'上顎右側第一大臼齒','17':'上顎右側第二大臼齒','18':'上顎右側第三大臼齒','21':'上顎左側中門牙','22':'上顎左側側門牙','23':'上顎左側犬齒','24':'上顎左側第一小臼齒','25':'上顎左側第二小臼齒','26':'上顎左側第一大臼齒','27':'上顎左側第二大臼齒','28':'上顎左側第三大臼齒','31':'下顎左側中門牙','32':'下顎左側側門牙','33':'下顎左側犬齒','34':'下顎左側第一小臼齒','35':'下顎左側第二小臼齒','36':'下顎左側第一大臼齒','37':'下顎左側第二大臼齒','38':'下顎左側第三大臼齒','41':'下顎右側中門牙','42':'下顎右側側門牙','43':'下顎右側犬齒','44':'下顎右側第一小臼齒','45':'下顎右側第二小臼齒','46':'下顎右側第一大臼齒','47':'下顎右側第二大臼齒','48':'下顎右側第三大臼齒'};
+var FDI_EN={'11':'UR Central','12':'UR Lateral','13':'UR Canine','14':'UR 1st Pre.','15':'UR 2nd Pre.','16':'UR 1st Molar','17':'UR 2nd Molar','18':'UR 3rd Molar','21':'UL Central','22':'UL Lateral','23':'UL Canine','24':'UL 1st Pre.','25':'UL 2nd Pre.','26':'UL 1st Molar','27':'UL 2nd Molar','28':'UL 3rd Molar','31':'LL Central','32':'LL Lateral','33':'LL Canine','34':'LL 1st Pre.','35':'LL 2nd Pre.','36':'LL 1st Molar','37':'LL 2nd Molar','38':'LL 3rd Molar','41':'LR Central','42':'LR Lateral','43':'LR Canine','44':'LR 1st Pre.','45':'LR 2nd Pre.','46':'LR 1st Molar','47':'LR 2nd Molar','48':'LR 3rd Molar'};
+
+var lang='zh', docs=[], nid=1, tc=1, teeth=[], recs=[], pads=[false,false];
+var clinicName={zh:clinic.name_zh, en:clinic.name_en||''};
+var views=['f0','f1','settings','records','detail'];
+
+function G(id){return document.getElementById(id);}
+function T(id,v){var e=G(id);if(e)e.textContent=v;}
+function getFDI(c){return lang==='en'?(FDI_EN[c]||FDI[c]||null):FDI[c]||null;}
+function today(){var d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd;}
+function setDates(){['sd0','sd1'].forEach(function(id){var e=G(id);if(e&&!e.value)e.value=today();});}
+
+// 診所名稱
+function previewClinic(){var zh=G('clinicZh').value.trim()||'（未填入）';var en=G('clinicEn').value.trim()||'（未填入）';G('prev-zh').textContent=zh;G('prev-en').textContent=en;}
+function saveClinic(){var zh=G('clinicZh').value.trim(),en=G('clinicEn').value.trim();if(!zh&&!en){toast('請至少填入一個名稱',true);return;}if(zh)clinicName.zh=zh;if(en)clinicName.en=en;updateLogos();toast('✓ 診所名稱已套用',false);}
+function updateLogos(){var zh=G('logo-zh0'),en=G('logo-en0');if(zh)zh.textContent=clinicName.zh;if(en)en.textContent=clinicName.en;}
+
+// 語言
+function toggleLang(){setLang(lang==='zh'?'en':'zh');}
+function setLang(l){lang=l;G('langTrack').classList.toggle('on',l==='en');G('lbl-zh').classList.toggle('active',l==='zh');G('lbl-en').classList.toggle('active',l==='en');applyLang();renderDocs();renderT();teeth=teeth.map(function(x){return{code:x.code,name:getFDI(x.code)||x.name};});renderChips();}
+
+// 頁面切換
+function goView(v){
+  views.forEach(function(n){var e=G('view-'+n);if(e)e.classList.toggle('on',n===v);});
+  document.querySelectorAll('.nt').forEach(function(t,i){t.classList.toggle('on',i===0?v==='f0':v==='f1');});
+  G('abn').classList.toggle('on',v==='settings');
+  G('rbn').classList.toggle('on',v==='records'||v==='detail');
+  if(v==='settings'){G('clinicZh').value=clinicName.zh;G('clinicEn').value=clinicName.en;previewClinic();}
+  if(v==='records')renderRecs();
+}
+
+// 簽名板
+function initPad(idx){var cv=G('cv'+idx);if(!cv)return;var wrap=G('sw'+idx),hint=wrap.querySelector('.sphint'),dpr=window.devicePixelRatio||1,drawing=false;function resize(){var r=cv.getBoundingClientRect();cv.width=r.width*dpr;cv.height=r.height*dpr;var c=cv.getContext('2d');c.scale(dpr,dpr);c.strokeStyle='#111';c.lineWidth=1.8;c.lineCap='round';c.lineJoin='round';}resize();function pos(e){var r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}function start(e){e.preventDefault();var c=cv.getContext('2d'),p=pos(e);c.beginPath();c.moveTo(p.x,p.y);drawing=true;}function move(e){e.preventDefault();if(!drawing)return;var c=cv.getContext('2d'),p=pos(e);c.lineTo(p.x,p.y);c.stroke();if(!pads[idx]){pads[idx]=true;wrap.classList.add('signed');hint.classList.add('h');}}function end(e){e.preventDefault();drawing=false;}cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',move);cv.addEventListener('mouseup',end);cv.addEventListener('mouseleave',end);cv.addEventListener('touchstart',start,{passive:false});cv.addEventListener('touchmove',move,{passive:false});cv.addEventListener('touchend',end,{passive:false});}
+function clrPad(idx){var cv=G('cv'+idx);if(!cv)return;var dpr=window.devicePixelRatio||1,c=cv.getContext('2d');c.clearRect(0,0,cv.width/dpr,cv.height/dpr);var wrap=G('sw'+idx),hint=wrap.querySelector('.sphint');wrap.classList.remove('signed');hint.classList.remove('h');pads[idx]=false;}
+function getPadDataURL(idx){var cv=G('cv'+idx);if(!cv||!pads[idx])return '';return cv.toDataURL('image/png');}
+
+// 牙位
+function renderChips(){var box=G('tbox'),raw=G('traw');box.querySelectorAll('.tchip').forEach(function(el){el.remove();});teeth.forEach(function(t){var c=document.createElement('span');c.className='tchip';c.innerHTML='#'+t.code+' '+t.name+'<button class="tchip-rm" onclick="rmT2(\''+t.code+'\')">×</button>';box.insertBefore(c,raw);});raw.placeholder=teeth.length?'':'16...';}
+function addTooth(code){if(!getFDI(code))return;if(teeth.find(function(t){return t.code===code;}))return;teeth.push({code:code,name:getFDI(code)});renderChips();}
+function rmT2(code){teeth=teeth.filter(function(t){return t.code!==code;});renderChips();}
+G('traw').addEventListener('input',function(){var v=this.value.replace(/\D/g,'');this.value=v;if(v.length===2&&getFDI(v)){addTooth(v);this.value='';}});
+G('traw').addEventListener('keydown',function(e){var v=this.value.replace(/\D/g,'');if((e.key==='Enter'||e.key===','||e.key==='，')&&v.length===2){e.preventDefault();addTooth(v);this.value='';}if(e.key==='Backspace'&&this.value===''&&teeth.length){teeth.pop();renderChips();}});
+function getChecks(cls){var items=[];document.querySelectorAll('.'+cls).forEach(function(cb){if(cb.checked){var sp=cb.closest('label').querySelector('span[id]');if(sp)items.push(sp.textContent);}});return items;}
+
+// 送出 → D1
+async function submitForm(idx){
+  if(idx===0){
+    var nm=G('p0name').value.trim(),dr=G('ds0').value;
+    var allCk=[].slice.call(document.querySelectorAll('.ck0')).every(function(c){return c.checked;});
+    if(!nm){toast(lang==='zh'?'請填寫患者姓名':'Please enter patient name',true);return;}
+    if(!dr){toast(lang==='zh'?'請選擇主治醫師':'Please select a doctor',true);return;}
+    if(!allCk){toast(lang==='zh'?'請勾選所有確認事項':'Please check all items',true);return;}
+    if(!pads[0]){toast(lang==='zh'?'請完成患者簽名':'Please sign first',true);return;}
+    var rel=G('rs0').options[G('rs0').selectedIndex].text;
+    await doSaveRec({name:nm,type:'crown',date:G('sd0').value||today(),doctor:dr,relation:rel,teeth:teeth.map(function(t){return t.code+' '+t.name;}),checks:getChecks('ck0'),signature:getPadDataURL(0)});
+    resetF(0);toast(lang==='zh'?'✓ 已儲存拆除牙釘／牙冠同意書':'✓ Saved',false);
+  } else {
+    var nm=G('p1name').value.trim();
+    var allCk=[].slice.call(document.querySelectorAll('.ck1')).every(function(c){return c.checked;});
+    if(!nm){toast(lang==='zh'?'請填寫患者姓名':'Please enter patient name',true);return;}
+    if(!allCk){toast(lang==='zh'?'請勾選所有確認事項':'Please check all items',true);return;}
+    if(!pads[1]){toast(lang==='zh'?'請完成患者簽名':'Please sign first',true);return;}
+    var rel=G('rs1').options[G('rs1').selectedIndex].text;
+    await doSaveRec({name:nm,type:'auth',date:G('sd1').value||today(),doctor:'',relation:rel,teeth:[],checks:getChecks('ck1'),signature:getPadDataURL(1)});
+    resetF(1);toast(lang==='zh'?'✓ 已儲存醫療資訊查詢授權同意書':'✓ Saved',false);
+  }
+}
+
+async function doSaveRec(rec){
+  var now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  rec.time=hm;
+  try{
+    var res=await fetch('/api/records/save',{method:'POST',headers:authHeaders(),body:JSON.stringify(rec)});
+    if(res.status===401){doLogout();return;}
+  }catch(e){console.warn('Save failed',e);}
+  // 本地快取
+  recs.unshift({nm:rec.name,type:rec.type,date:rec.date,time:hm,doctor:rec.doctor||'',relation:rec.relation||'',teeth:rec.teeth||[],checks:rec.checks||[],signature:rec.signature||''});
+}
+
+function resetF(idx){if(idx===0){G('p0name').value='';G('ds0').value='';document.querySelectorAll('.ck0').forEach(function(c){c.checked=false;});clrPad(0);teeth=[];renderChips();}else{G('p1name').value='';document.querySelectorAll('.ck1').forEach(function(c){c.checked=false;});clrPad(1);}setDates();}
+
+// 記錄頁
+function formatDL(ds){var d=new Date(ds+'T00:00:00'),y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate(),dow=['日','一','二','三','四','五','六'][d.getDay()];return{l:y+'/'+(m<10?'0'+m:m)+'/'+(dd<10?'0'+dd:dd),w:'（'+dow+'）'};}
+
+async function renderRecs(){
+  var body=G('recBody'),cnt=G('recCnt');
+  body.innerHTML='<div class="rec-empty"><i class="ti ti-loader"></i><p>載入中…</p></div>';
+  try{
+    var res=await fetch('/api/records',{headers:authHeaders()});
+    if(res.status===401){doLogout();return;}
+    var data=await res.json();
+    recs=data.map(function(r){return{nm:r.name,type:r.type,date:r.date,time:r.time,doctor:r.doctor||'',relation:r.relation||'',teeth:r.teeth||[],checks:r.checks||[],signature:r.signature||''};});
+  }catch(e){}
+  var si=G('searchInput');if(si)si.value='';
+  var sh=G('searchHint');if(sh)sh.textContent='';
+  var sc=G('searchClear');if(sc)sc.classList.remove('show');
+  renderRecList(recs.map(function(r,i){return{r:r,i:i};}));
+}
+
+function renderRecList(list){
+  var body=G('recBody'),cnt=G('recCnt');
+  cnt.textContent='共 '+list.length+' 筆';
+  if(!list.length){body.innerHTML='<div class="rec-empty"><i class="ti ti-file-search"></i><p>查無符合記錄</p></div>';return;}
+  var grps={},order=[];
+  list.forEach(function(item){var r=item.r;if(!grps[r.date]){grps[r.date]=[];order.push(r.date);}grps[r.date].push(item);});
+  order=order.filter(function(v,i){return order.indexOf(v)===i;}).sort(function(a,b){return b.localeCompare(a);});
+  var html='';
+  order.forEach(function(date){
+    var dl=formatDL(date);
+    html+='<div class="dgrp"><div class="dgrp-row"><div class="dcell"><div class="dlabel">'+dl.l+'</div><div class="ddow">'+dl.w+'</div></div><div class="rcell">';
+    grps[date].forEach(function(item){
+      var badge=item.r.type==='crown'?'<span class="rbadge b-crown">拆除牙釘／牙冠</span>':'<span class="rbadge b-auth">醫療授權</span>';
+      html+='<div class="ritem" onclick="openDetail('+item.i+')"><span class="rname">'+item.r.nm+'</span>'+badge+'<span class="rtime">'+item.r.time+'</span><i class="ti ti-chevron-right rchevron"></i></div>';
+    });
+    html+='</div></div></div>';
+  });
+  body.innerHTML=html;
+}
+
+function onSearch(){
+  var q=(G('searchInput').value||'').trim();
+  var sc=G('searchClear'),sh=G('searchHint');
+  sc.classList.toggle('show',q.length>0);
+  if(!q){sh.textContent='';renderRecList(recs.map(function(r,i){return{r:r,i:i};}));return;}
+  var matched=[];recs.forEach(function(r,i){if(r.nm&&r.nm.indexOf(q)!==-1)matched.push({r:r,i:i});});
+  sh.textContent='找到 '+matched.length+' 筆「'+q+'」的記錄';
+  renderRecList(matched);
+}
+function clearSearch(){var si=G('searchInput'),sh=G('searchHint'),sc=G('searchClear');si.value='';sh.textContent='';sc.classList.remove('show');si.focus();renderRecList(recs.map(function(r,i){return{r:r,i:i};}));}
+
+function openDetail(idx){
+  var r=recs[idx];if(!r)return;
+  var typeName=r.type==='crown'?'拆除牙釘／牙冠手術同意書':'醫療資訊查詢授權同意書';
+  T('detail-title',r.nm+' ─ '+r.date);
+  var teethHtml=r.teeth&&r.teeth.length?r.teeth.map(function(t){return'<span class="tooth-chip-sm">#'+t+'</span>';}).join(''):'<span style="color:var(--g400);font-size:12px;">未填寫</span>';
+  var checksHtml=r.checks&&r.checks.length?r.checks.map(function(c){return'<div class="check-item"><i class="ti ti-circle-check check-icon ok"></i><span>'+c+'</span></div>';}).join(''):'<span style="color:var(--g400);font-size:12px;">無記錄</span>';
+  var sigHtml=r.signature?'<div class="sig-img-wrap"><img src="'+r.signature+'" alt="簽名"></div>':'<div class="sig-empty"><i class="ti ti-writing" style="font-size:24px;display:block;margin-bottom:6px;color:var(--g400);"></i>無簽名圖像</div>';
+  G('detail-body').innerHTML=
+    '<div class="detail-card"><div class="detail-card-t"><i class="ti ti-file-description"></i>同意書資訊</div>'+
+    '<div class="detail-row"><span class="detail-label">種類</span><span class="detail-value"><span class="rbadge '+(r.type==='crown'?'b-crown':'b-auth')+'" style="font-size:11px;">'+typeName+'</span></span></div>'+
+    '<div class="detail-row"><span class="detail-label">患者姓名</span><span class="detail-value">'+r.nm+'</span></div>'+
+    (r.doctor?'<div class="detail-row"><span class="detail-label">主治醫師</span><span class="detail-value">Dr. '+r.doctor+'</span></div>':'')+
+    '<div class="detail-row"><span class="detail-label">簽署日期</span><span class="detail-value">'+r.date+' '+r.time+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">與患者關係</span><span class="detail-value">'+(r.relation||'—')+'</span></div></div>'+
+    (r.teeth&&r.teeth.length?'<div class="detail-card"><div class="detail-card-t"><i class="ti ti-tooth"></i>治療牙位</div><div>'+teethHtml+'</div></div>':'')+
+    '<div class="detail-card"><div class="detail-card-t"><i class="ti ti-checkbox"></i>勾選確認事項</div>'+checksHtml+'</div>'+
+    '<div class="detail-card"><div class="detail-card-t"><i class="ti ti-writing"></i>患者簽名</div>'+sigHtml+'</div>';
+  goView('detail');
+}
+
+function toast(msg,err){var e=G('toast');G('tmsg').textContent=msg;e.className='toast '+(err?'err':'ok');e.classList.add('show');setTimeout(function(){e.classList.remove('show');},2800);}
+
+function renderDocs(){var t=TX[lang],b=G('dlb'),c=G('dcnt');c.textContent=t.cnt.replace('{n}',docs.length);b.innerHTML=docs.length===0?'<div class="dempty">'+t.noDoc+'</div>':docs.map(function(d){var ini=d.name.length>=2?d.name.slice(-2):d.name;return'<div class="drow"><div class="dav">'+ini+'</div><div class="dinfo"><div class="dname">Dr. '+d.name+'</div><div class="dtit">'+(d.title||'')+'</div></div><button class="btnd" onclick="rmDoc('+d.id+')"><i class="ti ti-trash"></i> '+t.rm+'</button></div>';}).join('');var s=G('ds0'),v=s?s.value:'';if(s)s.innerHTML='<option value="">'+t.selDoc+'</option>'+docs.map(function(d){return'<option value="'+d.name+'"'+(v===d.name?' selected':'')+'>Dr. '+d.name+'（'+(d.title||'')+'）</option>';}).join('');}
+function addDoc(){var n=G('ndn'),ti=G('ndt'),nm=n.value.trim(),tl=ti.value.trim();if(!nm){n.focus();return;}docs.push({id:nid++,name:nm,title:tl||'醫師'});n.value='';ti.value='';renderDocs();toast(TX[lang].tAdd+nm,false);}
+function rmDoc(id){var d=docs.find(function(x){return x.id===id;});docs=docs.filter(function(x){return x.id!==id;});renderDocs();if(d)toast(TX[lang].tRm+d.name,false);}
+function renderT(){var t=TX[lang],l=G('tlist'),h='';for(var i=0;i<tc;i++){h+='<div class="tentry"><div class="tentry-hd"><span class="tlabel">'+t.tLabel+' '+(i+1)+'</span>'+(i>0?'<button class="trmbtn" onclick="rmTr('+i+')"><i class="ti ti-x"></i> '+t.rmT+'</button>':'')+'</div><div class="r3"><div class="fg"><label>'+t.tName+'</label><input type="text" placeholder="姓名"></div><div class="fg"><label>'+t.tRel+'</label><input type="text" placeholder="例：配偶"></div><div class="fg"><label>聯絡電話</label><input type="tel" placeholder="手機或市話"></div></div></div>';}l.innerHTML=h;}
+function addT(){tc++;renderT();}function rmTr(i){if(tc>1){tc--;renderT();}}
+
+var TX={zh:{t0:'拆除牙釘／牙冠同意書',t1:'醫療資訊查詢授權同意書',p0T:'拆除牙釘／牙冠手術同意書',p0S:'Consent for Removal of Dental Post / Crown',proc:'治療說明',pd1:'本手術目的為拆除患者牙齒內現有之牙釘（Post）及／或牙冠（Crown），以進行後續牙科治療（包括但不限於重新根管治療、補綴修復、植牙準備等）。',pd2:'主治醫師將依患者個別狀況，選用適當器械（超音波震盪器、專用鑽針等）執行拆除程序。',patName:'患者姓名 *',aDoc:'主治醫師 *',selDoc:'請選擇醫師…',tooth:'治療牙位',th:'FDI，Enter 加入',rT:'治療風險告知',rI:'以下為本手術可能發生之風險，患者已充分瞭解：',r1:'牙裂或折斷，導致須拔除患牙',r2:'牙釘殘留無法完全取出',r3:'鄰近牙齒或牙周組織損傷',r4:'術後疼痛、腫脹及短暫敏感',r5:'麻醉藥物過敏反應',r6:'治療後需重新評估後續修復計畫',pC:'患者確認事項 *',c1:'我已詳閱並理解上述治療說明及風險告知，並有機會向醫師提問。',c2:'我理解本手術之替代方案（包括不治療），並同意接受本次拆除牙釘／牙冠之治療。',c3:'我同意醫師依實際術中情形彈性調整治療方式，以符合我的最佳利益。',c4:'我已被告知術後注意事項，並承諾遵守醫囑。',pSig:'患者（或法定代理人）簽名 *',sh:'在此簽名',sd:'簽署日期',rel:'與患者之關係',relSelf:'本人',relFamily:'家屬',clear:'清除重簽',footer:'本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。',p1T:'患者個人資料與醫療資訊查詢授權同意書',p1S:'依據《醫療法》第 72 條及《個人資料保護法》｜請詳閱後簽署，正本自簽署日起永久保存。',fD:'同意書說明',fDT:'本診所對於患者之就醫紀錄、病情診斷、治療計畫及自費項目明細等隱私資料，負有嚴格保密義務。為便利患者因故需由家屬或特定第三人代為處理就醫相關事宜，特簽署本同意書。',aI:'一、授權人（患者本人）基本資料',pN:'患者姓名 *',id:'身分證字號',ph:'聯絡電話',tI:'二、受託人（被授權之親友）資料',aT2:'新增受託人',aS:'三、授權範圍',rM:'必填，可複選',s1:'完整醫療資訊',s1d:'病情診斷、療程進度、術後照護及影像等',s2:'醫療費用資訊',s2d:'報價、繳費狀況、收據及費用明細',s3:'代領醫療文件',s3d:'診斷證明書、病歷複製本、處方箋等',s4:'僅限約診聯絡',s4d:'確認、更改、取消或預約看診時間',dcl:'四、同意及聲明事項',d1t:'身分核對義務：',d1:'受託人查詢時，診所得要求出示國民身分證以供核對。',d2t:'變更與撤回權利：',d2:'本同意書自簽署日起生效。若欲變更或撤回，應主動通知本診所。',d3:'我已詳閱並完全理解本同意書之全部內容，自願授權本診所提供醫療資訊予受託人。',aSig:'立同意書人（患者本人）親筆簽名 *',n1:'注意事項：',pN2:'本同意書由醫療機構留存於病歷中，正本自簽署日起永久保存。',footer1:'本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。',aT:'後台管理',aD:'管理診所資訊與醫師名單。',aAdd:'新增醫師',dN:'醫師姓名',dR:'職稱',add:'新增',dL:'醫師名單',cnt:'共 {n} 位',rm:'移除',noDoc:'尚無醫師，請從上方新增。',n:'注意：',aN:'刪除醫師後，該醫師將從所有同意書的選單中移除，但已填寫完成的同意書不受影響。',tLabel:'受託人',rmT:'移除',tName:'受託人姓名',tRel:'與患者關係',recT:'簽署記錄',recHd:'所有記錄',tAdd:'已新增醫師：Dr. ',tRm:'已移除：Dr. ',clinicT:'診所名稱設定',clinicZhL:'診所中文名稱',clinicEnL:'診所英文名稱',clinicPrev:'同意書右上角預覽',clinicSave:'套用名稱'},
+en:{t0:'Post/Crown Removal Consent',t1:'Medical Info Authorization',p0T:'Consent for Removal of Dental Post / Crown',p0S:'拆除牙釘／牙冠手術同意書',proc:'Procedure',pd1:'This procedure removes the existing dental post and/or crown to facilitate subsequent dental treatment.',pd2:'The attending physician will select appropriate instruments based on the patient\'s condition.',patName:'Patient Name *',aDoc:'Attending Doctor *',selDoc:'Select a doctor…',tooth:'Tooth (FDI)',th:'FDI code, Enter to add',rT:'Risk Disclosure',rI:'The patient has been fully informed of the following potential risks:',r1:'Tooth crack or fracture requiring extraction',r2:'Post remnants that cannot be fully removed',r3:'Damage to adjacent teeth or periodontal tissue',r4:'Post-operative pain, swelling, and sensitivity',r5:'Allergic reaction to anesthetic',r6:'Restoration plan reassessment required',pC:'Patient Confirmation *',c1:'I have read and understood the procedure description and risk disclosure.',c2:'I understand the alternatives and consent to this procedure.',c3:'I agree the doctor may adjust the approach as needed.',c4:'I have been informed of post-operative instructions.',pSig:'Patient (or Legal Guardian) Signature *',sh:'Sign here',sd:'Date',rel:'Relationship',relSelf:'Self',relFamily:'Family',clear:'Clear',footer:'This form is permanently retained by the clinic.',p1T:'Patient Data & Medical Information Authorization',p1S:'Pursuant to Medical Care Act Art. 72 ｜ Permanently retained.',fD:'About This Form',fDT:'The clinic has a strict duty of confidentiality.',aI:'1. Authorizer (Patient)',pN:'Patient Name *',id:'ID Number',ph:'Phone',tI:'2. Trustee',aT2:'Add Trustee',aS:'3. Scope',rM:'Required, multiple',s1:'Full Medical Info',s1d:'Diagnosis, progress, imaging',s2:'Fee Info',s2d:'Quotes, receipts',s3:'Collect Documents',s3d:'Certificates, records',s4:'Appointment Only',s4d:'Schedule appointments',dcl:'4. Declarations',d1t:'Identity: ',d1:'The clinic may require the trustee to present a national ID.',d2t:'Right to Revoke: ',d2:'Effective from signing date.',d3:'I authorize the clinic to provide medical info to the trustee.',aSig:'Authorizer Signature *',n1:'Note: ',pN2:'Permanently retained in medical record.',footer1:'This form is permanently retained by the clinic.',aT:'Admin Settings',aD:'Manage clinic info and doctor list.',aAdd:'Add Doctor',dN:'Name',dR:'Title',add:'Add',dL:'Doctors',cnt:'{n} doctors',rm:'Remove',noDoc:'No doctors yet.',n:'Note: ',aN:'Removing a doctor removes them from all menus.',tLabel:'Trustee',rmT:'Remove',tName:'Trustee Name',tRel:'Relationship',recT:'Signed Records',recHd:'All Records',tAdd:'Doctor added: Dr. ',tRm:'Removed: Dr. ',clinicT:'Clinic Name Settings',clinicZhL:'Chinese Name',clinicEnL:'English Name',clinicPrev:'Preview (consent top right)',clinicSave:'Apply Name'}};
+
+function applyLang(){var t=TX[lang];T('t-t0',t.t0);T('t-t1',t.t1);T('t-p0T',t.p0T);T('t-p0S',t.p0S);T('t-proc',t.proc);T('t-pd1',t.pd1);T('t-pd2',t.pd2);T('t-patName',t.patName);T('t-aDoc',t.aDoc);T('t-tooth',t.tooth);T('t-th',t.th);T('t-rT',t.rT);T('t-rI',t.rI);T('t-r1',t.r1);T('t-r2',t.r2);T('t-r3',t.r3);T('t-r4',t.r4);T('t-r5',t.r5);T('t-r6',t.r6);T('t-pC',t.pC);T('t-c1',t.c1);T('t-c2',t.c2);T('t-c3',t.c3);T('t-c4',t.c4);T('t-pSig',t.pSig);T('t-sh0',t.sh);T('t-cl0',t.clear);T('t-sd0',t.sd);T('t-rel0',t.rel);T('t-ro0a',t.relSelf);T('t-ro0b',t.relFamily);T('t-footer0',t.footer);T('t-p1T',t.p1T);T('t-p1S',t.p1S);T('t-fD',t.fD);T('t-fDT',t.fDT);T('t-aI',t.aI);T('t-pN',t.pN);T('t-id',t.id);T('t-ph',t.ph);T('t-tI',t.tI);T('t-aT2',t.aT2);T('t-aS',t.aS);T('t-rM',t.rM);T('t-s1',t.s1);T('t-s1d',t.s1d);T('t-s2',t.s2);T('t-s2d',t.s2d);T('t-s3',t.s3);T('t-s3d',t.s3d);T('t-s4',t.s4);T('t-s4d',t.s4d);T('t-dcl',t.dcl);T('t-d1t',t.d1t);T('t-d1',t.d1);T('t-d2t',t.d2t);T('t-d2',t.d2);T('t-d3',t.d3);T('t-aSig',t.aSig);T('t-sh1',t.sh);T('t-cl1',t.clear);T('t-sd1',t.sd);T('t-rel1',t.rel);T('t-ro1a',t.relSelf);T('t-ro1b',t.relFamily);T('t-n1',t.n1);T('t-pN2',t.pN2);T('t-footer1',t.footer1);T('t-aT',t.aT);T('t-aD',t.aD);T('t-aAdd',t.aAdd);T('t-dN',t.dN);T('t-dR',t.dR);T('t-add',t.add);T('t-dL',t.dL);T('t-n',t.n);T('t-aN',t.aN);T('t-recT',t.recT);T('t-recHd',t.recHd);T('t-clinicT',t.clinicT);T('t-clinicZhL',t.clinicZhL);T('t-clinicEnL',t.clinicEnL);T('t-clinicPrev',t.clinicPrev);T('t-clinicSave',t.clinicSave);}
+
+G('ndn').addEventListener('keydown',function(e){if(e.key==='Enter')addDoc();});
+// 初始化：用 session 裡的診所名稱
+clinicName.zh=clinic.name_zh||'';clinicName.en=clinic.name_en||'';
+applyLang();renderDocs();renderT();setDates();updateLogos();
+setTimeout(function(){initPad(0);initPad(1);},100);
+</script>
+</body>
+</html>
