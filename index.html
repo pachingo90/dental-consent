@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="同意書簽署">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="icon" type="image/png" href="/icon.png">
+<title>同意書簽署系統｜登入</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F0F4FF;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(24,95,165,0.12);}
+.logo{text-align:center;margin-bottom:28px;}
+.logo img{width:72px;height:72px;border-radius:16px;margin-bottom:12px;}
+.logo h1{font-size:20px;font-weight:700;color:#0C447C;margin-bottom:4px;}
+.logo p{font-size:13px;color:#868E96;}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.fg label{font-size:12px;font-weight:600;color:#495057;}
+.fg input{font-size:15px;padding:11px 14px;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;background:#F8F9FA;color:#212529;font-family:inherit;width:100%;outline:none;transition:border-color .15s;}
+.fg input:focus{border-color:#378ADD;background:#fff;}
+.btn{width:100%;height:48px;border:none;border-radius:10px;background:#185FA5;color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;margin-top:8px;}
+.btn:hover{background:#0C447C;}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.6;pointer-events:none;}
+.errmsg{background:#FCEBEB;border:1px solid #f5c6c6;border-radius:8px;padding:10px 14px;font-size:13px;color:#A32D2D;margin-top:12px;display:none;}
+.errmsg.show{display:block;}
+.admin-link{text-align:center;margin-top:20px;font-size:12px;color:#868E96;}
+.admin-link a{color:#185FA5;text-decoration:none;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <img src="/icon.png" alt="同意書簽署">
+    <h1>同意書簽署系統</h1>
+    <p>請輸入診所代碼與密碼登入</p>
+  </div>
+  <div class="fg">
+    <label>診所代碼</label>
+    <input type="text" id="clinicId" placeholder="例：lm-dental" autocomplete="off" autocapitalize="none">
+  </div>
+  <div class="fg">
+    <label>診所密碼</label>
+    <input type="password" id="accessCode" placeholder="••••••••">
+  </div>
+  <button class="btn" id="loginBtn" onclick="doLogin()">
+    <i class="ti ti-login"></i> 登入
+  </button>
+  <div class="errmsg" id="errmsg"></div>
+  <div class="admin-link"><a href="/admin.html">管理員入口</a></div>
+</div>
+<script>
+var sess=localStorage.getItem('dental_session');
+if(sess){try{var s=JSON.parse(sess);if(s.token&&s.clinic)window.location.href='/app.html';}catch(e){localStorage.removeItem('dental_session');}}
+document.getElementById('accessCode').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('clinicId').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('accessCode').focus();});
+async function doLogin(){
+  var id=document.getElementById('clinicId').value.trim();
+  var code=document.getElementById('accessCode').value.trim();
+  var btn=document.getElementById('loginBtn');
+  if(!id||!code){showErr('請填寫診所代碼與密碼');return;}
+  btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> 登入中…';
+  try{
+    var res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clinic_id:id,access_code:code})});
+    var data=await res.json();
+    if(!res.ok||!data.ok)showErr(data.error||'登入失敗');
+    else{localStorage.setItem('dental_session',JSON.stringify({token:data.token,clinic:data.clinic}));window.location.href='/app.html';}
+  }catch(e){showErr('網路錯誤，請稍後再試');}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-login"></i> 登入';
+}
+function showErr(msg){var e=document.getElementById('errmsg');e.textContent=msg;e.classList.add('show');}
+</script>
+</body>
+</html>
