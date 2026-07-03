@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理員介面｜同意書簽署系統</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#F1F3F5;color:#212529;min-height:100vh;}
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.1);}
+.login-card h2{font-size:20px;font-weight:700;color:#0C447C;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.login-card p{font-size:13px;color:#868E96;margin-bottom:24px;}
+/* App */
+.app-wrap{display:none;}
+.topbar{background:#0C447C;color:#fff;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.topbar-actions{display:flex;gap:8px;}
+.tbtn{height:34px;padding:0 14px;border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;background:transparent;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;}
+.tbtn:hover{background:rgba(255,255,255,0.1);}
+.tbtn.red{border-color:rgba(255,100,100,0.5);color:#ffaaaa;}
+.content{padding:20px;max-width:900px;margin:0 auto;}
+.section-title{font-size:15px;font-weight:600;color:#212529;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+/* Cards */
+.card{background:#fff;border:1px solid rgba(0,0,0,0.09);border-radius:12px;padding:16px 18px;margin-bottom:16px;}
+.card-t{font-size:11px;font-weight:600;color:#868E96;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:5px;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fg label{font-size:12px;font-weight:600;color:#495057;}
+.fg input{font-size:14px;padding:9px 12px;border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;background:#F8F9FA;color:#212529;font-family:inherit;width:100%;outline:none;}
+.fg input:focus{border-color:#378ADD;background:#fff;}
+.fg .hint{font-size:11px;color:#868E96;margin-top:2px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* Buttons */
+.btn-primary{height:40px;padding:0 18px;border:none;border-radius:8px;background:#185FA5;color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-primary:hover{background:#0C447C;}
+.btn-primary:disabled{opacity:.6;pointer-events:none;}
+.btn-secondary{height:36px;padding:0 14px;border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;background:#fff;color:#212529;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.btn-secondary:hover{background:#F8F9FA;}
+.btn-danger{height:32px;padding:0 12px;border:none;border-radius:8px;background:#FCEBEB;color:#A32D2D;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.btn-success{height:32px;padding:0 12px;border:none;border-radius:8px;background:#EAF3DE;color:#3B6D11;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:4px;}
+/* Clinic table */
+.clinic-list{border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.09);}
+.clinic-hd{display:grid;grid-template-columns:160px 1fr 1fr 80px 80px 100px;gap:0;background:#F8F9FA;border-bottom:1px solid rgba(0,0,0,0.09);}
+.clinic-hd>div{padding:10px 14px;font-size:11px;font-weight:600;color:#868E96;text-transform:uppercase;letter-spacing:.04em;}
+.clinic-row{display:grid;grid-template-columns:160px 1fr 1fr 80px 80px 100px;gap:0;border-bottom:1px solid rgba(0,0,0,0.06);background:#fff;align-items:center;}
+.clinic-row:last-child{border-bottom:none;}
+.clinic-row:hover{background:#F8F9FA;}
+.clinic-row>div{padding:10px 14px;font-size:13px;color:#212529;}
+.clinic-id{font-family:monospace;font-size:12px;color:#185FA5;font-weight:600;}
+.badge-on{background:#EAF3DE;color:#3B6D11;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;}
+.badge-off{background:#F1F3F5;color:#868E96;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;}
+.cnt-badge{background:#E6F1FB;color:#185FA5;font-size:12px;padding:2px 9px;border-radius:99px;font-weight:600;}
+.actions{display:flex;gap:6px;align-items:center;}
+.dempty{padding:32px;text-align:center;font-size:13px;color:#868E96;background:#fff;}
+/* Edit modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+.modal h3{font-size:16px;font-weight:600;color:#212529;margin-bottom:16px;display:flex;align-items:center;gap:7px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+/* common */
+.errmsg{background:#FCEBEB;border:1px solid #f5c6c6;border-radius:8px;padding:9px 13px;font-size:13px;color:#A32D2D;margin-top:10px;display:none;}
+.errmsg.show{display:block;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;display:none;align-items:center;gap:7px;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
+.toast.show{display:flex;}
+.toast.ok{background:#1a3a0a;color:#EAF3DE;}
+.toast.err{background:#7a1a1a;color:#FCEBEB;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.stat{background:#fff;border:1px solid rgba(0,0,0,0.09);border-radius:12px;padding:16px 18px;}
+.stat-n{font-size:28px;font-weight:700;color:#185FA5;}
+.stat-l{font-size:12px;color:#868E96;margin-top:3px;}
+@media(max-width:700px){.clinic-hd,.clinic-row{grid-template-columns:1fr 1fr auto;}.clinic-hd>div:nth-child(3),.clinic-hd>div:nth-child(4),.clinic-row>div:nth-child(3),.clinic-row>div:nth-child(4){display:none;}.row3{grid-template-columns:1fr;}.stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- 登入畫面 -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h2><i class="ti ti-shield-lock"></i> 管理員登入</h2>
+    <p>輸入管理員密碼進入後台</p>
+    <div class="fg"><label>管理員密碼</label><input type="password" id="adminPwd" placeholder="••••••••"></div>
+    <button class="btn-primary" id="adminLoginBtn" onclick="doAdminLogin()" style="width:100%;justify-content:center;">
+      <i class="ti ti-login"></i> 登入
+    </button>
+    <div class="errmsg" id="loginErr"></div>
+    <div style="margin-top:16px;text-align:center;font-size:12px;color:#868E96;">
+      <a href="/" style="color:#185FA5;text-decoration:none;">← 回診所登入頁</a>
+    </div>
+  </div>
+</div>
+
+<!-- 管理介面 -->
+<div class="app-wrap" id="appWrap">
+  <div class="topbar">
+    <div class="topbar-title"><i class="ti ti-shield-lock"></i> 同意書系統｜管理員</div>
+    <div class="topbar-actions">
+      <button class="tbtn" onclick="showChangePwd()"><i class="ti ti-key"></i> 改密碼</button>
+      <button class="tbtn red" onclick="adminLogout()"><i class="ti ti-logout"></i> 登出</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- 統計 -->
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="stat-clinics">-</div><div class="stat-l">診所總數</div></div>
+      <div class="stat"><div class="stat-n" id="stat-active">-</div><div class="stat-l">啟用中</div></div>
+      <div class="stat"><div class="stat-n" id="stat-records">-</div><div class="stat-l">簽署記錄總筆數</div></div>
+    </div>
+
+    <!-- 新增診所 -->
+    <div class="card">
+      <div class="card-t"><i class="ti ti-building-hospital"></i> 新增診所</div>
+      <div class="row3">
+        <div class="fg">
+          <label>診所代碼 *</label>
+          <input type="text" id="new-id" placeholder="lm-dental" autocapitalize="none">
+          <span class="hint">英文小寫、數字、連字號</span>
+        </div>
+        <div class="fg"><label>中文名稱 *</label><input type="text" id="new-zh" placeholder="LM 迎曦牙醫診所"></div>
+        <div class="fg"><label>英文名稱</label><input type="text" id="new-en" placeholder="Dayspring Dentist Clinic"></div>
+      </div>
+      <div class="fg" style="max-width:300px;">
+        <label>診所密碼 *</label>
+        <input type="text" id="new-code" placeholder="至少 4 個字元">
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-primary" id="createBtn" onclick="createClinic()"><i class="ti ti-plus"></i> 建立診所</button>
+      </div>
+      <div class="errmsg" id="createErr"></div>
+    </div>
+
+    <!-- 診所列表 -->
+    <div class="section-title"><i class="ti ti-list"></i> 診所列表</div>
+    <div class="clinic-list">
+      <div class="clinic-hd">
+        <div>診所代碼</div><div>中文名稱</div><div>英文名稱</div><div>記錄數</div><div>狀態</div><div>操作</div>
+      </div>
+      <div id="clinicBody"><div class="dempty">載入中…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯診所 Modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3><i class="ti ti-edit"></i> 編輯診所</h3>
+    <input type="hidden" id="edit-id">
+    <div class="fg"><label>中文名稱</label><input type="text" id="edit-zh"></div>
+    <div class="fg"><label>英文名稱</label><input type="text" id="edit-en"></div>
+    <div class="fg"><label>診所密碼（留空不修改）</label><input type="text" id="edit-code" placeholder="輸入新密碼"></div>
+    <div class="errmsg" id="editErr"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('editModal')">取消</button>
+      <button class="btn-primary" onclick="saveEdit()"><i class="ti ti-check"></i> 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 改密碼 Modal -->
+<div class="modal-bg" id="pwdModal">
+  <div class="modal">
+    <h3><i class="ti ti-key"></i> 修改管理員密碼</h3>
+    <div class="fg"><label>新密碼（至少 6 個字元）</label><input type="password" id="new-admin-pwd" placeholder="••••••••"></div>
+    <div class="fg"><label>確認新密碼</label><input type="password" id="new-admin-pwd2" placeholder="••••••••"></div>
+    <div class="errmsg" id="pwdErr"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('pwdModal')">取消</button>
+      <button class="btn-primary" onclick="changeAdminPwd()"><i class="ti ti-check"></i> 確認修改</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="tmsg"></span></div>
+
+<script>
+var adminToken = localStorage.getItem('admin_token');
+
+if (adminToken) showApp();
+
+document.getElementById('adminPwd').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doAdminLogin();
+});
+
+async function doAdminLogin() {
+  var pwd = document.getElementById('adminPwd').value;
+  var btn = document.getElementById('adminLoginBtn');
+  if (!pwd) return;
+  btn.disabled = true;
+  try {
+    var res = await fetch('/api/auth/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.ok) {
+      document.getElementById('loginErr').textContent = data.error || '密碼錯誤';
+      document.getElementById('loginErr').classList.add('show');
+    } else {
+      adminToken = data.token;
+      localStorage.setItem('admin_token', adminToken);
+      showApp();
+    }
+  } catch(e) {
+    document.getElementById('loginErr').textContent = '網路錯誤';
+    document.getElementById('loginErr').classList.add('show');
+  }
+  btn.disabled = false;
+}
+
+function showApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'block';
+  loadClinics();
+}
+
+function adminLogout() {
+  localStorage.removeItem('admin_token');
+  location.reload();
+}
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken };
+}
+
+async function loadClinics() {
+  try {
+    var res = await fetch('/api/admin/clinics', { headers: authHeaders() });
+    if (res.status === 401) { adminLogout(); return; }
+    var clinics = await res.json();
+    renderClinics(clinics);
+    // 統計
+    var active = clinics.filter(function(c) { return c.active; }).length;
+    var totalRec = clinics.reduce(function(s, c) { return s + (c.record_count || 0); }, 0);
+    document.getElementById('stat-clinics').textContent = clinics.length;
+    document.getElementById('stat-active').textContent = active;
+    document.getElementById('stat-records').textContent = totalRec;
+  } catch(e) {
+    document.getElementById('clinicBody').innerHTML = '<div class="dempty">載入失敗</div>';
+  }
+}
+
+function renderClinics(clinics) {
+  var body = document.getElementById('clinicBody');
+  if (!clinics.length) { body.innerHTML = '<div class="dempty">尚無診所</div>'; return; }
+  body.innerHTML = clinics.map(function(c) {
+    return '<div class="clinic-row">' +
+      '<div><span class="clinic-id">' + c.id + '</span></div>' +
+      '<div>' + esc(c.name_zh) + '</div>' +
+      '<div style="color:#868E96;font-size:12px;">' + esc(c.name_en || '—') + '</div>' +
+      '<div><span class="cnt-badge">' + (c.record_count || 0) + '</span></div>' +
+      '<div><span class="' + (c.active ? 'badge-on' : 'badge-off') + '">' + (c.active ? '啟用' : '停用') + '</span></div>' +
+      '<div class="actions">' +
+        '<button class="btn-secondary" style="height:30px;padding:0 10px;font-size:12px;" onclick="openEdit(\'' + c.id + '\',\'' + esc(c.name_zh) + '\',\'' + esc(c.name_en || '') + '\')"><i class="ti ti-edit"></i></button>' +
+        (c.active
+          ? '<button class="btn-danger" onclick="toggleClinic(\'' + c.id + '\',false)"><i class="ti ti-ban"></i> 停用</button>'
+          : '<button class="btn-success" onclick="toggleClinic(\'' + c.id + '\',true)"><i class="ti ti-check"></i> 啟用</button>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function createClinic() {
+  var id = document.getElementById('new-id').value.trim();
+  var zh = document.getElementById('new-zh').value.trim();
+  var en = document.getElementById('new-en').value.trim();
+  var code = document.getElementById('new-code').value.trim();
+  var errEl = document.getElementById('createErr');
+  errEl.classList.remove('show');
+  if (!id || !zh || !code) { errEl.textContent = '請填寫必填欄位'; errEl.classList.add('show'); return; }
+  var btn = document.getElementById('createBtn');
+  btn.disabled = true;
+  try {
+    var res = await fetch('/api/admin/clinics/create', {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ id, name_zh: zh, name_en: en, access_code: code })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.ok) { errEl.textContent = data.error || '建立失敗'; errEl.classList.add('show'); }
+    else {
+      document.getElementById('new-id').value = '';
+      document.getElementById('new-zh').value = '';
+      document.getElementById('new-en').value = '';
+      document.getElementById('new-code').value = '';
+      toast('✓ 診所已建立：' + id, false);
+      loadClinics();
+    }
+  } catch(e) { errEl.textContent = '網路錯誤'; errEl.classList.add('show'); }
+  btn.disabled = false;
+}
+
+function openEdit(id, zh, en) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-zh').value = zh;
+  document.getElementById('edit-en').value = en;
+  document.getElementById('edit-code').value = '';
+  document.getElementById('editErr').classList.remove('show');
+  document.getElementById('editModal').classList.add('open');
+}
+
+async function saveEdit() {
+  var id = document.getElementById('edit-id').value;
+  var zh = document.getElementById('edit-zh').value.trim();
+  var en = document.getElementById('edit-en').value.trim();
+  var code = document.getElementById('edit-code').value.trim();
+  var errEl = document.getElementById('editErr');
+  errEl.classList.remove('show');
+  var body = { id, name_zh: zh, name_en: en };
+  if (code) body.access_code = code;
+  try {
+    var res = await fetch('/api/admin/clinics/update', {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(body)
+    });
+    var data = await res.json();
+    if (!res.ok || !data.ok) { errEl.textContent = data.error || '儲存失敗'; errEl.classList.add('show'); }
+    else { closeModal('editModal'); toast('✓ 診所資料已更新', false); loadClinics(); }
+  } catch(e) { errEl.textContent = '網路錯誤'; errEl.classList.add('show'); }
+}
+
+async function toggleClinic(id, active) {
+  try {
+    var res = await fetch('/api/admin/clinics/toggle', {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ id, active })
+    });
+    var data = await res.json();
+    if (data.ok) { toast((active ? '✓ 已啟用：' : '✓ 已停用：') + id, false); loadClinics(); }
+  } catch(e) {}
+}
+
+function showChangePwd() {
+  document.getElementById('new-admin-pwd').value = '';
+  document.getElementById('new-admin-pwd2').value = '';
+  document.getElementById('pwdErr').classList.remove('show');
+  document.getElementById('pwdModal').classList.add('open');
+}
+
+async function changeAdminPwd() {
+  var p1 = document.getElementById('new-admin-pwd').value;
+  var p2 = document.getElementById('new-admin-pwd2').value;
+  var errEl = document.getElementById('pwdErr');
+  errEl.classList.remove('show');
+  if (p1.length < 6) { errEl.textContent = '密碼至少需要 6 個字元'; errEl.classList.add('show'); return; }
+  if (p1 !== p2) { errEl.textContent = '兩次密碼不一致'; errEl.classList.add('show'); return; }
+  try {
+    var res = await fetch('/api/admin/password', {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ new_password: p1 })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.ok) { errEl.textContent = data.error || '修改失敗'; errEl.classList.add('show'); }
+    else { closeModal('pwdModal'); toast('✓ 管理員密碼已修改，請重新登入', false); setTimeout(adminLogout, 2000); }
+  } catch(e) { errEl.textContent = '網路錯誤'; errEl.classList.add('show'); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, err) {
+  var e = document.getElementById('toast');
+  document.getElementById('tmsg').textContent = msg;
+  e.className = 'toast ' + (err ? 'err' : 'ok');
+  e.classList.add('show');
+  setTimeout(function() { e.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>
