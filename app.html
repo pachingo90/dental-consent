@@ -12,10 +12,10 @@
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-m:#378ADD;--blue-d:#0C447C;--green:#3B6D11;--green-l:#EAF3DE;--green-m:#97C459;--red-l:#FCEBEB;--red:#A32D2D;--g50:#F8F9FA;--g100:#F1F3F5;--g400:#868E96;--g600:#495057;--g800:#212529;--brd:rgba(0,0,0,0.09);--brd-s:rgba(0,0,0,0.15);--r:8px;--r-lg:12px;--tap:44px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;}
-.app{display:flex;flex-direction:column;height:100%;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--g800);background:var(--g100);}
-html,body{height:100%;margin:0;padding:0;overflow:hidden;}
-.nav{background:#fff;border-bottom:1px solid var(--brd);display:flex;align-items:center;flex-shrink:0;height:48px;box-shadow:0 1px 3px rgba(0,0,0,0.05);z-index:10;}
+html,body{margin:0;padding:0;}
+.app{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--g800);background:var(--g100);}
+html,body{margin:0;padding:0;}
+.nav{background:#fff;border-bottom:1px solid var(--brd);display:flex;align-items:center;flex-shrink:0;height:48px;box-shadow:0 1px 3px rgba(0,0,0,0.05);z-index:10;position:sticky;top:0;}
 .nav-tabs{display:flex;align-items:center;flex:1;overflow-x:auto;padding:0 8px;}
 .nav-tabs::-webkit-scrollbar{display:none;}
 .nt{height:48px;padding:0 14px;font-size:14px;color:var(--g400);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:6px;flex-shrink:0;}
@@ -35,7 +35,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;}
 .ibt.rec:hover,.ibt.rec.on{background:var(--blue-l);color:var(--blue);}
 .ibt.logout:hover{background:var(--red-l);color:var(--red);}
 .view{display:none;}
-.view.on{display:block;position:fixed;top:48px;left:0;right:0;bottom:0;overflow-y:auto;background:var(--g100);}
+.view.on{display:block;width:100%;min-height:50vh;overflow-y:auto;background:var(--g100);}
 .form-view{padding:16px 16px 40px;max-width:760px;margin:0 auto;}
 .a4{background:#fff;border:1px solid var(--brd);border-radius:var(--r-lg);padding:24px 28px;max-width:700px;margin:0 auto;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
 .dochd{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:14px;border-bottom:1.5px solid var(--blue-d);margin-bottom:16px;}
