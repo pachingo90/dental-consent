@@ -21,33 +21,30 @@ async function verifyClinic(request, env) {
   return clinic ? parsed.id : null;
 }
 
+// GET /api/doctors — 取得醫師名單
 export async function onRequestGet(context) {
   const { request, env } = context;
   try {
     const clinic_id = await verifyClinic(request, env);
     if (!clinic_id) return err('Unauthorized', 401);
-    const url = new URL(request.url);
-    const search = url.searchParams.get('q') || '';
-    let stmt;
-    if (search) {
-      stmt = env.DB.prepare(
-        'SELECT * FROM records WHERE clinic_id = ? AND patient_name LIKE ? ORDER BY date DESC, time DESC LIMIT 200'
-      ).bind(clinic_id, '%' + search + '%');
-    } else {
-      stmt = env.DB.prepare(
-        'SELECT * FROM records WHERE clinic_id = ? ORDER BY date DESC, time DESC LIMIT 200'
-      ).bind(clinic_id);
-    }
-    const results = await stmt.all();
-    const records = (results.results || []).map(r => ({
-      id: r.id, name: r.patient_name, type: r.type,
-      date: r.date, time: r.time, doctor: r.doctor || '',
-      relation: r.relation || '',
-      teeth: JSON.parse(r.teeth || '[]'),
-      checks: JSON.parse(r.checks || '[]'),
-      signature: r.signature || ''
-    }));
-    return json(records);
+    const data = await env.DENTAL_KV.get('doctors:' + clinic_id);
+    const doctors = data ? JSON.parse(data) : [];
+    return json(doctors);
+  } catch (e) {
+    return err(e.message, 500);
+  }
+}
+
+// POST /api/doctors — 儲存醫師名單（整份覆蓋）
+export async function onRequestPost(context) {
+  const { request, env } = context;
+  try {
+    const clinic_id = await verifyClinic(request, env);
+    if (!clinic_id) return err('Unauthorized', 401);
+    const { doctors } = await request.json();
+    if (!Array.isArray(doctors)) return err('Invalid format');
+    await env.DENTAL_KV.put('doctors:' + clinic_id, JSON.stringify(doctors));
+    return json({ ok: true });
   } catch (e) {
     return err(e.message, 500);
   }
