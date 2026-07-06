@@ -319,14 +319,17 @@ body{height:100%;overflow:hidden;}
     <div class="add-row">
       <div class="fg"><label id="t-dN">醫師姓名</label><input type="text" id="ndn" placeholder="例：王小明"></div>
       <div class="fg"><label id="t-dR">職稱</label><input type="text" id="ndt" placeholder="例：主治醫師"></div>
-      <button class="btng" onclick="addDoc()"><i class="ti ti-plus"></i><span id="t-add">新增</span></button>
+      <button class="btng" id="addDocBtn" onclick="addDoc()"><i class="ti ti-plus"></i><span id="t-add">新增</span></button>
     </div>
   </div>
   <div class="dlist">
     <div class="dlist-hd"><i class="ti ti-list"></i><span id="t-dL">醫師名單</span>&nbsp;<span id="dcnt" style="font-weight:400;"></span></div>
     <div id="dlb"></div>
   </div>
-  <div class="nbox"><strong id="t-n">注意：</strong><span id="t-aN">刪除醫師後，該醫師將從所有同意書的選單中移除，但已填寫完成的同意書不受影響。</span></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+    <button class="btn-apply" id="saveDocBtn" onclick="saveDocs()" style="background:var(--green);"><i class="ti ti-device-floppy"></i><span id="t-dSave">儲存名單</span></button>
+  </div>
+  <div class="nbox" style="margin-top:10px;"><strong id="t-n">注意：</strong><span id="t-aN">刪除醫師後，按「儲存名單」才會永久生效。</span></div>
 </div>
 </div>
 
@@ -553,9 +556,65 @@ function openDetail(idx){
 
 function toast(msg,err){var e=G('toast');G('tmsg').textContent=msg;e.className='toast '+(err?'err':'ok');e.classList.add('show');setTimeout(function(){e.classList.remove('show');},2800);}
 
-function renderDocs(){var t=TX[lang],b=G('dlb'),c=G('dcnt');c.textContent=t.cnt.replace('{n}',docs.length);b.innerHTML=docs.length===0?'<div class="dempty">'+t.noDoc+'</div>':docs.map(function(d){var ini=d.name.length>=2?d.name.slice(-2):d.name;return'<div class="drow"><div class="dav">'+ini+'</div><div class="dinfo"><div class="dname">Dr. '+d.name+'</div><div class="dtit">'+(d.title||'')+'</div></div><button class="btnd" onclick="rmDoc('+d.id+')"><i class="ti ti-trash"></i> '+t.rm+'</button></div>';}).join('');var s=G('ds0'),v=s?s.value:'';if(s)s.innerHTML='<option value="">'+t.selDoc+'</option>'+docs.map(function(d){return'<option value="'+d.name+'"'+(v===d.name?' selected':'')+'>Dr. '+d.name+'（'+(d.title||'')+'）</option>';}).join('');}
-function addDoc(){var n=G('ndn'),ti=G('ndt'),nm=n.value.trim(),tl=ti.value.trim();if(!nm){n.focus();return;}docs.push({id:nid++,name:nm,title:tl||'醫師'});n.value='';ti.value='';renderDocs();toast(TX[lang].tAdd+nm,false);}
-function rmDoc(id){var d=docs.find(function(x){return x.id===id;});docs=docs.filter(function(x){return x.id!==id;});renderDocs();if(d)toast(TX[lang].tRm+d.name,false);}
+function renderDocs(){
+  var t=TX[lang],b=G('dlb'),c=G('dcnt');
+  c.textContent=t.cnt.replace('{n}',docs.length);
+  b.innerHTML=docs.length===0?'<div class="dempty">'+t.noDoc+'</div>':docs.map(function(d){
+    var ini=d.name.length>=2?d.name.slice(-2):d.name;
+    return'<div class="drow"><div class="dav">'+ini+'</div><div class="dinfo"><div class="dname">Dr. '+d.name+'</div><div class="dtit">'+(d.title||'')+'</div></div><button class="btnd" onclick="rmDoc('+d.id+')"><i class="ti ti-trash"></i> '+t.rm+'</button></div>';
+  }).join('');
+  var s=G('ds0'),v=s?s.value:'';
+  if(s)s.innerHTML='<option value="">'+t.selDoc+'</option>'+docs.map(function(d){
+    return'<option value="'+d.name+'"'+(v===d.name?' selected':'')+'>Dr. '+d.name+'（'+(d.title||'')+'）</option>';
+  }).join('');
+}
+
+function addDoc(){
+  var n=G('ndn'),ti=G('ndt'),nm=n.value.trim(),tl=ti.value.trim();
+  if(!nm){n.focus();return;}
+  docs.push({id:nid++,name:nm,title:tl||'醫師'});
+  n.value='';ti.value='';
+  renderDocs();
+  toast(TX[lang].tAdd+nm,false);
+}
+
+function rmDoc(id){
+  var d=docs.find(function(x){return x.id===id;});
+  docs=docs.filter(function(x){return x.id!==id;});
+  renderDocs();
+  if(d)toast(TX[lang].tRm+d.name,false);
+}
+
+async function loadDocs(){
+  try{
+    var res=await fetch('/api/doctors',{headers:authHeaders()});
+    if(res.status===401){doLogout();return;}
+    var data=await res.json();
+    if(Array.isArray(data)&&data.length>0){
+      docs=data.map(function(d,i){return{id:i+1,name:d.name,title:d.title||''};});
+      nid=docs.length+1;
+      renderDocs();
+    }
+  }catch(e){console.warn('loadDocs failed',e);}
+}
+
+async function saveDocs(){
+  var btn=G('saveDocBtn');
+  btn.disabled=true;
+  try{
+    var payload=docs.map(function(d){return{name:d.name,title:d.title||''};});
+    var res=await fetch('/api/doctors',{
+      method:'POST',
+      headers:authHeaders(),
+      body:JSON.stringify({doctors:payload})
+    });
+    if(res.status===401){doLogout();return;}
+    var data=await res.json();
+    if(data.ok)toast(lang==='zh'?'✓ 醫師名單已儲存':'✓ Doctor list saved',false);
+    else toast(lang==='zh'?'儲存失敗':'Save failed',true);
+  }catch(e){toast(lang==='zh'?'網路錯誤':'Network error',true);}
+  btn.disabled=false;
+}
 function renderT(){var t=TX[lang],l=G('tlist'),h='';for(var i=0;i<tc;i++){h+='<div class="tentry"><div class="tentry-hd"><span class="tlabel">'+t.tLabel+' '+(i+1)+'</span>'+(i>0?'<button class="trmbtn" onclick="rmTr('+i+')"><i class="ti ti-x"></i> '+t.rmT+'</button>':'')+'</div><div class="r3"><div class="fg"><label>'+t.tName+'</label><input type="text" placeholder="姓名"></div><div class="fg"><label>'+t.tRel+'</label><input type="text" placeholder="例：配偶"></div><div class="fg"><label>聯絡電話</label><input type="tel" placeholder="手機或市話"></div></div></div>';}l.innerHTML=h;}
 function addT(){tc++;renderT();}function rmTr(i){if(tc>1){tc--;renderT();}}
 
@@ -642,9 +701,10 @@ G('previewModal').addEventListener('click', function(e) {
 });
 
 G('ndn').addEventListener('keydown',function(e){if(e.key==='Enter')addDoc();});
-// 初始化：用 session 裡的診所名稱
+// 初始化
 clinicName.zh=clinic.name_zh||'';clinicName.en=clinic.name_en||'';
 applyLang();renderDocs();renderT();setDates();updateLogos();
+loadDocs(); // 從 KV 載入醫師名單
 setTimeout(function(){initPad(0);initPad(1);},100);
 </script>
 </body>
