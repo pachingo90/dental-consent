@@ -74,10 +74,7 @@ html,body{margin:0;padding:0;}
 .save-btn{width:40px;height:40px;border:none;cursor:pointer;border-radius:var(--r);background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;margin-left:8px;transition:all .15s;}
 .save-btn:hover{background:var(--blue);color:#fff;}
 .save-btn:active{transform:scale(.94);}
-.shot-btn{width:40px;height:40px;border:none;cursor:pointer;border-radius:var(--r);background:#EAF3DE;color:#3B6D11;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;margin-left:8px;transition:all .15s;}
-.shot-btn:hover{background:#3B6D11;color:#fff;}
-.shot-btn:active{transform:scale(.94);}
-.shot-btn.loading{opacity:.6;pointer-events:none;}
+.save-btn.loading{opacity:.6;pointer-events:none;}
 /* 截圖預覽 modal */
 .preview-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
 .preview-modal.open{display:flex;}
@@ -257,8 +254,7 @@ html,body{margin:0;padding:0;}
   </div>
   <div class="form-footer">
     <span class="footer-txt" id="t-footer0">本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。</span>
-    <button class="shot-btn" id="shotBtn0" onclick="takeShot('a4-0')" title="截圖預覽"><i class="ti ti-camera"></i></button>
-    <button class="save-btn" onclick="submitForm(0)" title="儲存同意書"><i class="ti ti-device-floppy"></i></button>
+    <button class="save-btn" id="saveBtn0" onclick="submitAndShot(0)" title="截圖並儲存"><i class="ti ti-device-floppy"></i></button>
   </div>
 </div></div>
 </div>
@@ -293,8 +289,7 @@ html,body{margin:0;padding:0;}
   <div class="nbox2" style="margin-top:11px"><strong id="t-n1">注意事項：</strong><span id="t-pN2">本同意書由醫療機構留存於病歷中，正本自簽署日起永久保存。</span></div>
   <div class="form-footer" style="margin-top:14px;">
     <span class="footer-txt" id="t-footer1">本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。</span>
-    <button class="shot-btn" id="shotBtn1" onclick="takeShot('a4-1')" title="截圖預覽"><i class="ti ti-camera"></i></button>
-    <button class="save-btn" onclick="submitForm(1)" title="儲存同意書"><i class="ti ti-device-floppy"></i></button>
+    <button class="save-btn" id="saveBtn1" onclick="submitAndShot(1)" title="截圖並儲存"><i class="ti ti-device-floppy"></i></button>
   </div>
 </div><!-- end card --></div><!-- end a4-1 -->
 </div><!-- end form-view -->
@@ -434,9 +429,29 @@ function goView(v){
   G('rbn').classList.toggle('on',v==='records'||v==='detail');
   if(v==='settings'){G('clinicZh').value=clinicName.zh;G('clinicEn').value=clinicName.en;previewClinic();}
   if(v==='records')renderRecs();
+  // 切換到同意書頁時重新初始化簽名板（確保 canvas 尺寸正確）
+  if(v==='f0') setTimeout(function(){reinitPad(0);},50);
+  if(v==='f1') setTimeout(function(){reinitPad(1);},50);
 }
 
 // 簽名板
+function reinitPad(idx){
+  var cv=G('cv'+idx);if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var r=cv.getBoundingClientRect();
+  if(r.width===0)return; // 還沒顯示，跳過
+  // 保存現有簽名內容
+  var imgData=null;
+  try{imgData=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);}catch(e){}
+  cv.width=r.width*dpr;
+  cv.height=r.height*dpr;
+  var c=cv.getContext('2d');
+  c.scale(dpr,dpr);
+  c.strokeStyle='#111';c.lineWidth=1.8;c.lineCap='round';c.lineJoin='round';
+  // 還原簽名
+  if(imgData)try{c.putImageData(imgData,0,0);}catch(e){}
+}
+
 function initPad(idx){var cv=G('cv'+idx);if(!cv)return;var wrap=G('sw'+idx),hint=wrap.querySelector('.sphint'),dpr=window.devicePixelRatio||1,drawing=false;function resize(){var r=cv.getBoundingClientRect();cv.width=r.width*dpr;cv.height=r.height*dpr;var c=cv.getContext('2d');c.scale(dpr,dpr);c.strokeStyle='#111';c.lineWidth=1.8;c.lineCap='round';c.lineJoin='round';}resize();function pos(e){var r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}function start(e){e.preventDefault();var c=cv.getContext('2d'),p=pos(e);c.beginPath();c.moveTo(p.x,p.y);drawing=true;}function move(e){e.preventDefault();if(!drawing)return;var c=cv.getContext('2d'),p=pos(e);c.lineTo(p.x,p.y);c.stroke();if(!pads[idx]){pads[idx]=true;wrap.classList.add('signed');hint.classList.add('h');}}function end(e){e.preventDefault();drawing=false;}cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',move);cv.addEventListener('mouseup',end);cv.addEventListener('mouseleave',end);cv.addEventListener('touchstart',start,{passive:false});cv.addEventListener('touchmove',move,{passive:false});cv.addEventListener('touchend',end,{passive:false});}
 function clrPad(idx){var cv=G('cv'+idx);if(!cv)return;var dpr=window.devicePixelRatio||1,c=cv.getContext('2d');c.clearRect(0,0,cv.width/dpr,cv.height/dpr);var wrap=G('sw'+idx),hint=wrap.querySelector('.sphint');wrap.classList.remove('signed');hint.classList.remove('h');pads[idx]=false;}
 function getPadDataURL(idx){var cv=G('cv'+idx);if(!cv||!pads[idx])return '';return cv.toDataURL('image/png');}
@@ -450,194 +465,40 @@ G('traw').addEventListener('keydown',function(e){var v=this.value.replace(/\D/g,
 function getChecks(cls){var items=[];document.querySelectorAll('.'+cls).forEach(function(cb){if(cb.checked){var sp=cb.closest('label').querySelector('span[id]');if(sp)items.push(sp.textContent);}});return items;}
 
 // 送出 → D1
-async function submitForm(idx){
-  if(idx===0){
+// 驗證表單
+function validateForm(idx) {
+  if (idx === 0) {
     var nm=G('p0name').value.trim(),dr=G('ds0').value;
     var allCk=[].slice.call(document.querySelectorAll('.ck0')).every(function(c){return c.checked;});
-    if(!nm){toast(lang==='zh'?'請填寫患者姓名':'Please enter patient name',true);return;}
-    if(!dr){toast(lang==='zh'?'請選擇主治醫師':'Please select a doctor',true);return;}
-    if(!allCk){toast(lang==='zh'?'請勾選所有確認事項':'Please check all items',true);return;}
-    if(!pads[0]){toast(lang==='zh'?'請完成患者簽名':'Please sign first',true);return;}
-    var rel=G('rs0').options[G('rs0').selectedIndex].text;
-    await doSaveRec({name:nm,type:'crown',date:G('sd0').value||today(),doctor:dr,relation:rel,teeth:teeth.map(function(t){return t.code+' '+t.name;}),checks:getChecks('ck0'),signature:getPadDataURL(0)});
-    resetF(0);toast(lang==='zh'?'✓ 已儲存拆除牙釘／牙冠同意書':'✓ Saved',false);
+    if(!nm){toast(lang==='zh'?'請填寫患者姓名':'Please enter patient name',true);return false;}
+    if(!dr){toast(lang==='zh'?'請選擇主治醫師':'Please select a doctor',true);return false;}
+    if(!allCk){toast(lang==='zh'?'請勾選所有確認事項':'Please check all items',true);return false;}
+    if(!pads[0]){toast(lang==='zh'?'請完成患者簽名':'Please sign first',true);return false;}
   } else {
     var nm=G('p1name').value.trim();
     var allCk=[].slice.call(document.querySelectorAll('.ck1')).every(function(c){return c.checked;});
-    if(!nm){toast(lang==='zh'?'請填寫患者姓名':'Please enter patient name',true);return;}
-    if(!allCk){toast(lang==='zh'?'請勾選所有確認事項':'Please check all items',true);return;}
-    if(!pads[1]){toast(lang==='zh'?'請完成患者簽名':'Please sign first',true);return;}
-    var rel=G('rs1').options[G('rs1').selectedIndex].text;
-    await doSaveRec({name:nm,type:'auth',date:G('sd1').value||today(),doctor:'',relation:rel,teeth:[],checks:getChecks('ck1'),signature:getPadDataURL(1)});
-    resetF(1);toast(lang==='zh'?'✓ 已儲存醫療資訊查詢授權同意書':'✓ Saved',false);
+    if(!nm){toast(lang==='zh'?'請填寫患者姓名':'Please enter patient name',true);return false;}
+    if(!allCk){toast(lang==='zh'?'請勾選所有確認事項':'Please check all items',true);return false;}
+    if(!pads[1]){toast(lang==='zh'?'請完成患者簽名':'Please sign first',true);return false;}
   }
+  return true;
 }
 
-async function doSaveRec(rec){
-  var now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  rec.time=hm;
-  try{
-    var res=await fetch('/api/records/save',{method:'POST',headers:authHeaders(),body:JSON.stringify(rec)});
-    if(res.status===401){doLogout();return;}
-  }catch(e){console.warn('Save failed',e);}
-  // 本地快取
-  recs.unshift({nm:rec.name,type:rec.type,date:rec.date,time:hm,doctor:rec.doctor||'',relation:rec.relation||'',teeth:rec.teeth||[],checks:rec.checks||[],signature:rec.signature||''});
-}
+async function submitForm(idx){ await submitAndShot(idx); }
 
-function resetF(idx){if(idx===0){G('p0name').value='';G('ds0').value='';document.querySelectorAll('.ck0').forEach(function(c){c.checked=false;});clrPad(0);teeth=[];renderChips();}else{G('p1name').value='';document.querySelectorAll('.ck1').forEach(function(c){c.checked=false;});clrPad(1);}setDates();}
+async function submitAndShot(idx) {
+  if (!validateForm(idx)) return;
 
-// 記錄頁
-function formatDL(ds){var d=new Date(ds+'T00:00:00'),y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate(),dow=['日','一','二','三','四','五','六'][d.getDay()];return{l:y+'/'+(m<10?'0'+m:m)+'/'+(dd<10?'0'+dd:dd),w:'（'+dow+'）'};}
-
-async function renderRecs(){
-  var body=G('recBody'),cnt=G('recCnt');
-  body.innerHTML='<div class="rec-empty"><i class="ti ti-loader"></i><p>載入中…</p></div>';
-  try{
-    var res=await fetch('/api/records',{headers:authHeaders()});
-    if(res.status===401){doLogout();return;}
-    var data=await res.json();
-    recs=data.map(function(r){return{nm:r.name,type:r.type,date:r.date,time:r.time,doctor:r.doctor||'',relation:r.relation||'',teeth:r.teeth||[],checks:r.checks||[],signature:r.signature||''};});
-  }catch(e){}
-  var si=G('searchInput');if(si)si.value='';
-  var sh=G('searchHint');if(sh)sh.textContent='';
-  var sc=G('searchClear');if(sc)sc.classList.remove('show');
-  renderRecList(recs.map(function(r,i){return{r:r,i:i};}));
-}
-
-function renderRecList(list){
-  var body=G('recBody'),cnt=G('recCnt');
-  cnt.textContent='共 '+list.length+' 筆';
-  if(!list.length){body.innerHTML='<div class="rec-empty"><i class="ti ti-file-search"></i><p>查無符合記錄</p></div>';return;}
-  var grps={},order=[];
-  list.forEach(function(item){var r=item.r;if(!grps[r.date]){grps[r.date]=[];order.push(r.date);}grps[r.date].push(item);});
-  order=order.filter(function(v,i){return order.indexOf(v)===i;}).sort(function(a,b){return b.localeCompare(a);});
-  var html='';
-  order.forEach(function(date){
-    var dl=formatDL(date);
-    html+='<div class="dgrp"><div class="dgrp-row"><div class="dcell"><div class="dlabel">'+dl.l+'</div><div class="ddow">'+dl.w+'</div></div><div class="rcell">';
-    grps[date].forEach(function(item){
-      var badge=item.r.type==='crown'?'<span class="rbadge b-crown">拆除牙釘／牙冠</span>':'<span class="rbadge b-auth">醫療授權</span>';
-      html+='<div class="ritem" onclick="openDetail('+item.i+')"><span class="rname">'+item.r.nm+'</span>'+badge+'<span class="rtime">'+item.r.time+'</span><i class="ti ti-chevron-right rchevron"></i></div>';
-    });
-    html+='</div></div></div>';
-  });
-  body.innerHTML=html;
-}
-
-function onSearch(){
-  var q=(G('searchInput').value||'').trim();
-  var sc=G('searchClear'),sh=G('searchHint');
-  sc.classList.toggle('show',q.length>0);
-  if(!q){sh.textContent='';renderRecList(recs.map(function(r,i){return{r:r,i:i};}));return;}
-  var matched=[];recs.forEach(function(r,i){if(r.nm&&r.nm.indexOf(q)!==-1)matched.push({r:r,i:i});});
-  sh.textContent='找到 '+matched.length+' 筆「'+q+'」的記錄';
-  renderRecList(matched);
-}
-function clearSearch(){var si=G('searchInput'),sh=G('searchHint'),sc=G('searchClear');si.value='';sh.textContent='';sc.classList.remove('show');si.focus();renderRecList(recs.map(function(r,i){return{r:r,i:i};}));}
-
-function openDetail(idx){
-  var r=recs[idx];if(!r)return;
-  var typeName=r.type==='crown'?'拆除牙釘／牙冠手術同意書':'醫療資訊查詢授權同意書';
-  T('detail-title',r.nm+' ─ '+r.date);
-  var teethHtml=r.teeth&&r.teeth.length?r.teeth.map(function(t){return'<span class="tooth-chip-sm">#'+t+'</span>';}).join(''):'<span style="color:var(--g400);font-size:12px;">未填寫</span>';
-  var checksHtml=r.checks&&r.checks.length?r.checks.map(function(c){return'<div class="check-item"><i class="ti ti-circle-check check-icon ok"></i><span>'+c+'</span></div>';}).join(''):'<span style="color:var(--g400);font-size:12px;">無記錄</span>';
-  var sigHtml=r.signature?'<div class="sig-img-wrap"><img src="'+r.signature+'" alt="簽名"></div>':'<div class="sig-empty"><i class="ti ti-writing" style="font-size:24px;display:block;margin-bottom:6px;color:var(--g400);"></i>無簽名圖像</div>';
-  G('detail-body').innerHTML=
-    '<div class="detail-card"><div class="detail-card-t"><i class="ti ti-file-description"></i>同意書資訊</div>'+
-    '<div class="detail-row"><span class="detail-label">種類</span><span class="detail-value"><span class="rbadge '+(r.type==='crown'?'b-crown':'b-auth')+'" style="font-size:11px;">'+typeName+'</span></span></div>'+
-    '<div class="detail-row"><span class="detail-label">患者姓名</span><span class="detail-value">'+r.nm+'</span></div>'+
-    (r.doctor?'<div class="detail-row"><span class="detail-label">主治醫師</span><span class="detail-value">Dr. '+r.doctor+'</span></div>':'')+
-    '<div class="detail-row"><span class="detail-label">簽署日期</span><span class="detail-value">'+r.date+' '+r.time+'</span></div>'+
-    '<div class="detail-row"><span class="detail-label">與患者關係</span><span class="detail-value">'+(r.relation||'—')+'</span></div></div>'+
-    (r.teeth&&r.teeth.length?'<div class="detail-card"><div class="detail-card-t"><i class="ti ti-tooth"></i>治療牙位</div><div>'+teethHtml+'</div></div>':'')+
-    '<div class="detail-card"><div class="detail-card-t"><i class="ti ti-checkbox"></i>勾選確認事項</div>'+checksHtml+'</div>'+
-    '<div class="detail-card"><div class="detail-card-t"><i class="ti ti-writing"></i>患者簽名</div>'+sigHtml+'</div>';
-  goView('detail');
-}
-
-function toast(msg,err){var e=G('toast');G('tmsg').textContent=msg;e.className='toast '+(err?'err':'ok');e.classList.add('show');setTimeout(function(){e.classList.remove('show');},2800);}
-
-function renderDocs(){
-  var t=TX[lang],b=G('dlb'),c=G('dcnt');
-  c.textContent=t.cnt.replace('{n}',docs.length);
-  b.innerHTML=docs.length===0?'<div class="dempty">'+t.noDoc+'</div>':docs.map(function(d){
-    var ini=d.name.length>=2?d.name.slice(-2):d.name;
-    return'<div class="drow"><div class="dav">'+ini+'</div><div class="dinfo"><div class="dname">Dr. '+d.name+'</div><div class="dtit">'+(d.title||'')+'</div></div><button class="btnd" onclick="rmDoc('+d.id+')"><i class="ti ti-trash"></i> '+t.rm+'</button></div>';
-  }).join('');
-  var s=G('ds0'),v=s?s.value:'';
-  if(s)s.innerHTML='<option value="">'+t.selDoc+'</option>'+docs.map(function(d){
-    return'<option value="'+d.name+'"'+(v===d.name?' selected':'')+'>Dr. '+d.name+'（'+(d.title||'')+'）</option>';
-  }).join('');
-}
-
-function addDoc(){
-  var n=G('ndn'),ti=G('ndt'),nm=n.value.trim(),tl=ti.value.trim();
-  if(!nm){n.focus();return;}
-  docs.push({id:nid++,name:nm,title:tl||'醫師'});
-  n.value='';ti.value='';
-  renderDocs();
-  toast(TX[lang].tAdd+nm,false);
-}
-
-function rmDoc(id){
-  var d=docs.find(function(x){return x.id===id;});
-  docs=docs.filter(function(x){return x.id!==id;});
-  renderDocs();
-  if(d)toast(TX[lang].tRm+d.name,false);
-}
-
-async function loadDocs(){
-  try{
-    var res=await fetch('/api/doctors',{headers:authHeaders()});
-    if(res.status===401){doLogout();return;}
-    var data=await res.json();
-    if(Array.isArray(data)&&data.length>0){
-      docs=data.map(function(d,i){return{id:i+1,name:d.name,title:d.title||''};});
-      nid=docs.length+1;
-      renderDocs();
-    }
-  }catch(e){console.warn('loadDocs failed',e);}
-}
-
-async function saveDocs(){
-  var btn=G('saveDocBtn');
-  btn.disabled=true;
-  try{
-    var payload=docs.map(function(d){return{name:d.name,title:d.title||''};});
-    var res=await fetch('/api/doctors',{
-      method:'POST',
-      headers:authHeaders(),
-      body:JSON.stringify({doctors:payload})
-    });
-    if(res.status===401){doLogout();return;}
-    var data=await res.json();
-    if(data.ok)toast(lang==='zh'?'✓ 醫師名單已儲存':'✓ Doctor list saved',false);
-    else toast(lang==='zh'?'儲存失敗':'Save failed',true);
-  }catch(e){toast(lang==='zh'?'網路錯誤':'Network error',true);}
-  btn.disabled=false;
-}
-function renderT(){var t=TX[lang],l=G('tlist'),h='';for(var i=0;i<tc;i++){h+='<div class="tentry"><div class="tentry-hd"><span class="tlabel">'+t.tLabel+' '+(i+1)+'</span>'+(i>0?'<button class="trmbtn" onclick="rmTr('+i+')"><i class="ti ti-x"></i> '+t.rmT+'</button>':'')+'</div><div class="r3"><div class="fg"><label>'+t.tName+'</label><input type="text" placeholder="姓名"></div><div class="fg"><label>'+t.tRel+'</label><input type="text" placeholder="例：配偶"></div><div class="fg"><label>聯絡電話</label><input type="tel" placeholder="手機或市話"></div></div></div>';}l.innerHTML=h;}
-function addT(){tc++;renderT();}function rmTr(i){if(tc>1){tc--;renderT();}}
-
-var TX={zh:{t0:'拆除牙釘／牙冠同意書',t1:'醫療資訊查詢授權同意書',p0T:'拆除牙釘／牙冠手術同意書',p0S:'Consent for Removal of Dental Post / Crown',proc:'治療說明',pd1:'本手術目的為拆除患者牙齒內現有之牙釘（Post）及／或牙冠（Crown），以進行後續牙科治療（包括但不限於重新根管治療、補綴修復、植牙準備等）。',pd2:'主治醫師將依患者個別狀況，選用適當器械（超音波震盪器、專用鑽針等）執行拆除程序。',patName:'患者姓名 *',aDoc:'主治醫師 *',selDoc:'請選擇醫師…',tooth:'治療牙位',th:'FDI，Enter 加入',rT:'治療風險告知',rI:'以下為本手術可能發生之風險，患者已充分瞭解：',r1:'牙裂或折斷，導致須拔除患牙',r2:'牙釘殘留無法完全取出',r3:'鄰近牙齒或牙周組織損傷',r4:'術後疼痛、腫脹及短暫敏感',r5:'麻醉藥物過敏反應',r6:'治療後需重新評估後續修復計畫',pC:'患者確認事項 *',c1:'我已詳閱並理解上述治療說明及風險告知，並有機會向醫師提問。',c2:'我理解本手術之替代方案（包括不治療），並同意接受本次拆除牙釘／牙冠之治療。',c3:'我同意醫師依實際術中情形彈性調整治療方式，以符合我的最佳利益。',c4:'我已被告知術後注意事項，並承諾遵守醫囑。',pSig:'患者（或法定代理人）簽名 *',sh:'在此簽名',sd:'簽署日期',rel:'與患者之關係',relSelf:'本人',relFamily:'家屬',clear:'清除重簽',footer:'本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。',p1T:'患者個人資料與醫療資訊查詢授權同意書',p1S:'依據《醫療法》第 72 條及《個人資料保護法》｜請詳閱後簽署，正本自簽署日起永久保存。',fD:'同意書說明',fDT:'本診所對於患者之就醫紀錄、病情診斷、治療計畫及自費項目明細等隱私資料，負有嚴格保密義務。為便利患者因故需由家屬或特定第三人代為處理就醫相關事宜，特簽署本同意書。',aI:'一、授權人（患者本人）基本資料',pN:'患者姓名 *',id:'身分證字號',ph:'聯絡電話',tI:'二、受託人（被授權之親友）資料',aT2:'新增受託人',aS:'三、授權範圍',rM:'必填，可複選',s1:'完整醫療資訊',s1d:'病情診斷、療程進度、術後照護及影像等',s2:'醫療費用資訊',s2d:'報價、繳費狀況、收據及費用明細',s3:'代領醫療文件',s3d:'診斷證明書、病歷複製本、處方箋等',s4:'僅限約診聯絡',s4d:'確認、更改、取消或預約看診時間',dcl:'四、同意及聲明事項',d1t:'身分核對義務：',d1:'受託人查詢時，診所得要求出示國民身分證以供核對。',d2t:'變更與撤回權利：',d2:'本同意書自簽署日起生效。若欲變更或撤回，應主動通知本診所。',d3:'我已詳閱並完全理解本同意書之全部內容，自願授權本診所提供醫療資訊予受託人。',aSig:'立同意書人（患者本人）親筆簽名 *',n1:'注意事項：',pN2:'本同意書由醫療機構留存於病歷中，正本自簽署日起永久保存。',footer1:'本同意書由醫療機構留存，正本永久保存。如有任何疑問，請於簽署前詢問主治醫師。',aT:'後台管理',aD:'管理診所資訊與醫師名單。',aAdd:'新增醫師',dN:'醫師姓名',dR:'職稱',add:'新增',dL:'醫師名單',cnt:'共 {n} 位',rm:'移除',noDoc:'尚無醫師，請從上方新增。',n:'注意：',aN:'刪除醫師後，該醫師將從所有同意書的選單中移除，但已填寫完成的同意書不受影響。',tLabel:'受託人',rmT:'移除',tName:'受託人姓名',tRel:'與患者關係',recT:'簽署記錄',recHd:'所有記錄',tAdd:'已新增醫師：Dr. ',tRm:'已移除：Dr. ',clinicT:'診所名稱設定',clinicZhL:'診所中文名稱',clinicEnL:'診所英文名稱',clinicPrev:'同意書右上角預覽',clinicSave:'套用名稱'},
-en:{t0:'Post/Crown Removal Consent',t1:'Medical Info Authorization',p0T:'Consent for Removal of Dental Post / Crown',p0S:'拆除牙釘／牙冠手術同意書',proc:'Procedure',pd1:'This procedure removes the existing dental post and/or crown to facilitate subsequent dental treatment.',pd2:'The attending physician will select appropriate instruments based on the patient\'s condition.',patName:'Patient Name *',aDoc:'Attending Doctor *',selDoc:'Select a doctor…',tooth:'Tooth (FDI)',th:'FDI code, Enter to add',rT:'Risk Disclosure',rI:'The patient has been fully informed of the following potential risks:',r1:'Tooth crack or fracture requiring extraction',r2:'Post remnants that cannot be fully removed',r3:'Damage to adjacent teeth or periodontal tissue',r4:'Post-operative pain, swelling, and sensitivity',r5:'Allergic reaction to anesthetic',r6:'Restoration plan reassessment required',pC:'Patient Confirmation *',c1:'I have read and understood the procedure description and risk disclosure.',c2:'I understand the alternatives and consent to this procedure.',c3:'I agree the doctor may adjust the approach as needed.',c4:'I have been informed of post-operative instructions.',pSig:'Patient (or Legal Guardian) Signature *',sh:'Sign here',sd:'Date',rel:'Relationship',relSelf:'Self',relFamily:'Family',clear:'Clear',footer:'This form is permanently retained by the clinic.',p1T:'Patient Data & Medical Information Authorization',p1S:'Pursuant to Medical Care Act Art. 72 ｜ Permanently retained.',fD:'About This Form',fDT:'The clinic has a strict duty of confidentiality.',aI:'1. Authorizer (Patient)',pN:'Patient Name *',id:'ID Number',ph:'Phone',tI:'2. Trustee',aT2:'Add Trustee',aS:'3. Scope',rM:'Required, multiple',s1:'Full Medical Info',s1d:'Diagnosis, progress, imaging',s2:'Fee Info',s2d:'Quotes, receipts',s3:'Collect Documents',s3d:'Certificates, records',s4:'Appointment Only',s4d:'Schedule appointments',dcl:'4. Declarations',d1t:'Identity: ',d1:'The clinic may require the trustee to present a national ID.',d2t:'Right to Revoke: ',d2:'Effective from signing date.',d3:'I authorize the clinic to provide medical info to the trustee.',aSig:'Authorizer Signature *',n1:'Note: ',pN2:'Permanently retained in medical record.',footer1:'This form is permanently retained by the clinic.',aT:'Admin Settings',aD:'Manage clinic info and doctor list.',aAdd:'Add Doctor',dN:'Name',dR:'Title',add:'Add',dL:'Doctors',cnt:'{n} doctors',rm:'Remove',noDoc:'No doctors yet.',n:'Note: ',aN:'Removing a doctor removes them from all menus.',tLabel:'Trustee',rmT:'Remove',tName:'Trustee Name',tRel:'Relationship',recT:'Signed Records',recHd:'All Records',tAdd:'Doctor added: Dr. ',tRm:'Removed: Dr. ',clinicT:'Clinic Name Settings',clinicZhL:'Chinese Name',clinicEnL:'English Name',clinicPrev:'Preview (consent top right)',clinicSave:'Apply Name'}};
-
-function applyLang(){var t=TX[lang];T('t-t0',t.t0);T('t-t1',t.t1);T('t-p0T',t.p0T);T('t-p0S',t.p0S);T('t-proc',t.proc);T('t-pd1',t.pd1);T('t-pd2',t.pd2);T('t-patName',t.patName);T('t-aDoc',t.aDoc);T('t-tooth',t.tooth);T('t-th',t.th);T('t-rT',t.rT);T('t-rI',t.rI);T('t-r1',t.r1);T('t-r2',t.r2);T('t-r3',t.r3);T('t-r4',t.r4);T('t-r5',t.r5);T('t-r6',t.r6);T('t-pC',t.pC);T('t-c1',t.c1);T('t-c2',t.c2);T('t-c3',t.c3);T('t-c4',t.c4);T('t-pSig',t.pSig);T('t-sh0',t.sh);T('t-cl0',t.clear);T('t-sd0',t.sd);T('t-rel0',t.rel);T('t-ro0a',t.relSelf);T('t-ro0b',t.relFamily);T('t-footer0',t.footer);T('t-p1T',t.p1T);T('t-p1S',t.p1S);T('t-fD',t.fD);T('t-fDT',t.fDT);T('t-aI',t.aI);T('t-pN',t.pN);T('t-id',t.id);T('t-ph',t.ph);T('t-tI',t.tI);T('t-aT2',t.aT2);T('t-aS',t.aS);T('t-rM',t.rM);T('t-s1',t.s1);T('t-s1d',t.s1d);T('t-s2',t.s2);T('t-s2d',t.s2d);T('t-s3',t.s3);T('t-s3d',t.s3d);T('t-s4',t.s4);T('t-s4d',t.s4d);T('t-dcl',t.dcl);T('t-d1t',t.d1t);T('t-d1',t.d1);T('t-d2t',t.d2t);T('t-d2',t.d2);T('t-d3',t.d3);T('t-aSig',t.aSig);T('t-sh1',t.sh);T('t-cl1',t.clear);T('t-sd1',t.sd);T('t-rel1',t.rel);T('t-ro1a',t.relSelf);T('t-ro1b',t.relFamily);T('t-n1',t.n1);T('t-pN2',t.pN2);T('t-footer1',t.footer1);T('t-aT',t.aT);T('t-aD',t.aD);T('t-aAdd',t.aAdd);T('t-dN',t.dN);T('t-dR',t.dR);T('t-add',t.add);T('t-dL',t.dL);T('t-n',t.n);T('t-aN',t.aN);T('t-recT',t.recT);T('t-recHd',t.recHd);T('t-clinicT',t.clinicT);T('t-clinicZhL',t.clinicZhL);T('t-clinicEnL',t.clinicEnL);T('t-clinicPrev',t.clinicPrev);T('t-clinicSave',t.clinicSave);}
-
-// ── 截圖功能 ──────────────────────────────────────────────
-var shotDataURL = null;
-var shotFilename = 'consent.png';
-
-async function takeShot(targetId) {
-  var el = G(targetId);
-  if (!el) return;
-  var btnIdx = targetId === 'a4-0' ? 0 : 1;
-  var btn = G('shotBtn' + btnIdx);
+  var btn = G('saveBtn' + idx);
   btn.classList.add('loading');
   btn.innerHTML = '<i class="ti ti-loader"></i>';
-  toast(lang === 'zh' ? '截圖處理中…' : 'Capturing…', false);
+  toast(lang==='zh'?'截圖並儲存中…':'Saving…', false);
 
-  // 動態載入 html2canvas
+  // Step 1: 截圖整份同意書
+  var targetId = idx === 0 ? 'a4-0' : 'a4-1';
+  var el = G(targetId);
+  var shotDataURL = '';
+
   if (!window.html2canvas) {
     await new Promise(function(resolve, reject) {
       var s = document.createElement('script');
@@ -648,46 +509,75 @@ async function takeShot(targetId) {
   }
 
   try {
-    // 取得患者姓名做檔名
-    var nm = btnIdx === 0 ? (G('p0name').value.trim() || '同意書') : (G('p1name').value.trim() || '授權同意書');
-    var dateStr = (btnIdx === 0 ? G('sd0') : G('sd1')).value || new Date().toISOString().slice(0,10);
-    shotFilename = nm + '_' + dateStr + '.png';
-
     var canvas = await html2canvas(el, {
-      scale: 2,           // 高解析度（retina）
+      scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
-      windowWidth: el.scrollWidth + 56,  // 加上 padding
-      onclone: function(doc) {
-        // 確保截圖包含簽名 canvas（html2canvas 預設會正確處理）
-      }
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: el.scrollWidth + 56
     });
-
     shotDataURL = canvas.toDataURL('image/png');
-    G('previewImg').src = shotDataURL;
-
-    // 標題
-    var typeLabel = btnIdx === 0
-      ? (lang === 'zh' ? '拆除牙釘／牙冠同意書' : 'Post/Crown Consent')
-      : (lang === 'zh' ? '醫療資訊查詢授權同意書' : 'Medical Info Authorization');
-    G('previewTitleText').textContent = nm + '｜' + typeLabel;
-    G('downloadBtn').innerHTML = '<i class="ti ti-download"></i> 下載 PNG';
-
-    G('previewModal').classList.add('open');
   } catch(e) {
-    toast(lang === 'zh' ? '截圖失敗，請稍後再試' : 'Screenshot failed', true);
-    console.error(e);
+    console.warn('Screenshot failed:', e);
   }
 
+  // Step 2: 儲存到資料庫（包含截圖）
+  var nm, rel, recData;
+  if (idx === 0) {
+    nm = G('p0name').value.trim();
+    rel = G('rs0').options[G('rs0').selectedIndex].text;
+    recData = {
+      name: nm, type: 'crown',
+      date: G('sd0').value || today(),
+      doctor: G('ds0').value, relation: rel,
+      teeth: teeth.map(function(t){return t.code+' '+t.name;}),
+      checks: getChecks('ck0'),
+      signature: getPadDataURL(0),
+      screenshot: shotDataURL
+    };
+  } else {
+    nm = G('p1name').value.trim();
+    rel = G('rs1').options[G('rs1').selectedIndex].text;
+    recData = {
+      name: nm, type: 'auth',
+      date: G('sd1').value || today(),
+      doctor: '', relation: rel,
+      teeth: [],
+      checks: getChecks('ck1'),
+      signature: getPadDataURL(1),
+      screenshot: shotDataURL
+    };
+  }
+
+  await doSaveRec(recData);
+
+  // Step 3: 顯示截圖預覽
+  if (shotDataURL) {
+    var typeLabel = idx === 0
+      ? (lang==='zh'?'拆除牙釘／牙冠同意書':'Post/Crown Consent')
+      : (lang==='zh'?'醫療資訊查詢授權同意書':'Medical Auth.');
+    shotGlobal = shotDataURL;
+    shotFilename = (nm||'同意書') + '_' + (recData.date||today()) + '.png';
+    G('previewImg').src = shotDataURL;
+    G('previewTitleText').textContent = (nm||'') + '｜' + typeLabel;
+    G('previewModal').classList.add('open');
+  }
+
+  if (idx === 0) resetF(0); else resetF(1);
+  toast(lang==='zh'?'✓ 已儲存':'✓ Saved', false);
   btn.classList.remove('loading');
-  btn.innerHTML = '<i class="ti ti-camera"></i>';
+  btn.innerHTML = '<i class="ti ti-device-floppy"></i>';
 }
 
+var shotGlobal = null;
+var shotFilename = 'consent.png';
+
 function downloadShot() {
-  if (!shotDataURL) return;
+  if (!shotGlobal) return;
   var a = document.createElement('a');
-  a.href = shotDataURL;
+  a.href = shotGlobal;
   a.download = shotFilename;
   a.click();
 }
